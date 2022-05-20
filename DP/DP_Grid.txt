@@ -1,0 +1,608 @@
+Ninja Training
+Total Unique Paths
+Grid with obstacles
+Minimum Sum Path in Grid
+Triangle
+Max Path SUm
+Cherry Pick
+
+//============================================== Ninja Training ================================================
+int f(int day, int lastTask, vector<vector<int>> &points) {
+	if(day == 0) {
+		int maxi = 0;
+		for(int task = 0; task < 3; task++) {
+			if(task != lastTask) {
+				maxi = max(maxi, points[0][task]);
+			}
+		}
+		return maxi;
+	}
+	
+	int maxi = 0;
+	for(int task = 0; task < 3; task++) {
+		if(task != lastTask) {
+			int ptsEarned = points[day][task] + f(day-1, task, points);
+			maxi = max(maxi, ptsEarned);
+		}
+	}
+	
+	return maxi;
+}
+
+int ninjaTraining(int n, vector<vector<int>> &points) {
+    return f(n-1, 3, points);
+}
+
+//Memoization
+// TC - O(n*4)*3
+// SC - O(n) (stack space) + O(n*4) (extra space)
+int f(int day, int lastTask, vector<vector<int>> &points, vector<vector<int>> &dp) {
+	if(day == 0) {
+		int maxi = 0;
+		for(int task = 0; task < 3; task++) {
+			if(task != lastTask) {
+				maxi = max(maxi, points[0][task]);
+			}
+		}
+		return dp[day][lastTask] = maxi;
+	}
+	
+	if(dp[day][lastTask] != -1) return dp[day][lastTask];
+	
+	int maxi = 0;
+	for(int task = 0; task < 3; task++) {
+		if(task != lastTask) {
+			int ptsEarned = points[day][task] + f(day-1, task, points, dp);
+			maxi = max(maxi, ptsEarned);
+		}
+	}
+	
+	return dp[day][lastTask] = maxi;
+}
+
+int ninjaTraining(int n, vector<vector<int>> &points) {
+	vector<vector<int>> dp(n, vector<int>(4, -1));
+    return f(n-1, 3, points, dp);
+}
+
+// Tabulation
+int ninjaTraining(int n, vector<vector<int>> &points) {
+	vector<vector<int>> dp(n, vector<int>(4, -1));
+    
+	dp[0][0] = max(points[0][1], points[0][2]);
+	dp[0][1] = max(points[0][0], points[0][2]);
+	dp[0][2] = max(points[0][0], points[0][1]);
+	dp[0][3] = max(points[0][0], max(points[0][1], points[0][2]));
+	
+	for(int day = 1; day < n; day++) {
+		for(int lastTask = 0; lastTask < 4; lastTask++) {
+			dp[day][lastTask] = 0;
+			
+			//iterate over every task for curr day
+			for(int task = 0; task < 3; task++) {
+				if(task != lastTask) {
+					int ptsEarned = points[day][task] + dp[day-1][task];
+					dp[day][lastTask] = max(dp[day][lastTask], ptsEarned);
+				}
+			}
+		}
+	}
+	
+	return dp[n-1][3];
+}
+
+// Space Optimization
+int ninjaTraining(int n, vector<vector<int>> &points) {
+	vector<int> prev(4, 0);
+    
+	prev[0] = max(points[0][1], points[0][2]);
+	prev[1] = max(points[0][0], points[0][2]);
+	prev[2] = max(points[0][0], points[0][1]);
+	prev[3] = max(points[0][0], max(points[0][1], points[0][2]));
+	
+	for(int day = 1; day < n; day++) {
+		vector<int> curr(4, 0);
+		for(int lastTask = 0; lastTask < 4; lastTask++) {
+			curr[lastTask] = 0;
+
+			for(int task = 0; task < 3; task++) {
+				if(task != lastTask) {
+					int ptsEarned = points[day][task] + prev[task];
+					curr[lastTask] = max(curr[lastTask], ptsEarned);
+				}
+			}
+		}
+		
+		prev = curr;
+	}
+	
+	return prev[3];
+}
+
+
+//======================================== Total Unique Paths ==========================================
+//Memoization
+// TC - O(m*n)
+// SC - O((m-1) + (n-1)) (path len) + O(M*N) (extra space)
+int f(int i, int j, vector<vector<int>> &dp) {
+	
+	if( i == 0 && j == 0) return 1;
+	
+	if(i < 0 || j < 0) return 0;
+	
+	if(dp[i][j] != -1) return dp[i][j];
+	
+	int up = f(i-1, j, dp);
+	int down = f(i, j-1, dp);
+	
+	return dp[i][j] =  up + down;
+}
+
+int uniquePaths(int m, int n) {
+	vector<vector<int>> dp(m, vector<int>(n, -1));
+	
+	return f(m-1, n-1, dp);
+}
+
+// Tabulation
+int uniquePaths(int m, int n) {
+	vector<vector<int>> dp(m, vector<int>(n, 0));
+	
+	for(int i = 0; i < m; i++) {
+		for(int j = 0; j < n; j++) {
+			
+			if(i == 0 && j == 0) {
+				dp[i][j] = 1;
+				continue;
+			}
+			
+			int up = 0, left = 0;
+			
+			if(i > 0) up = dp[i-1][j];
+			if(j > 0) left = dp[i][j-1];
+			
+			dp[i][j] = up + left;
+		}
+	}
+	
+	return dp[m-1][n-1];
+}
+
+// Space Optimization
+int uniquePaths(int m, int n) {
+	vector<int> prev(n, 0);
+	
+	for(int i = 0; i < m; i++) {
+		vector<int> curr(n, 0);
+		for(int j = 0; j < n; j++) {
+			
+			if(i == 0 && j == 0) {
+				curr[j] = 1;
+				continue;
+			}
+			
+			int up = 0, left = 0;
+			
+			if(i > 0) up = prev[j];
+			if(j > 0) left = curr[j-1];
+			
+			curr[j] = up + left;
+		}
+		
+		prev = curr;
+	}
+	
+	return prev[n-1];
+}
+
+
+//====================================== Grid with obstacles ============================================
+int mazeObstacles(int n, int m, vector< vector< int> > &mat) {
+    int dp[n][m];
+	int mod = (int)(1e9 + 7);
+	
+	for(int i = 0; i < n; i++) {
+		for(int j = 0; j < m; j++) {
+			
+			if(mat[i][j] == -1) {
+				dp[i][j] = 0;
+				continue;
+			}
+			
+			if(i == 0 && j == 0) {
+				dp[i][j] = 1;
+				continue;
+			}
+			
+			int up = 0, left = 0;
+			
+			if(i > 0) up = dp[i-1][j];
+			if(j > 0) left = dp[i][j-1];
+			
+			dp[i][j] = (up + left) % mod;
+		}
+	}
+	
+	return dp[n-1][m-1];
+}
+
+
+//======================================= Minimum Sum Path in Grid ==========================================
+int minSumPath(vector<vector<int>> &grid) {
+    int n = grid.size();
+	int m = grid[0].size();
+	
+	vector<vector<int>> dp(n, vector<int>(m, 0));
+	
+	for(int i = 0; i < n; i++) {
+		for(int j = 0; j < m; j++) {
+			
+			if(i == 0 && j == 0) {
+				dp[i][j] = grid[i][j];
+				continue;
+			}
+			
+			int up = grid[i][j];
+			int left = grid[i][j];
+			
+			if(i > 0) up += dp[i-1][j];
+			else up += 1e9;
+			
+			if(j > 0) left += dp[i][j-1];
+			else left += 1e9;
+			
+			dp[i][j] = min(up, left);
+		}
+	}
+	
+	return dp[n-1][m-1];
+}
+
+// Space Optimization
+int minSumPath(int n, int m, vector<vector<int> > &matrix){
+    vector<int> prev(m,0);
+
+    for(int i=0; i<n ; i++){
+        vector<int> temp(m,0);
+        for(int j=0; j<m; j++){
+
+            if(i==0 && j==0) temp[j] = matrix[i][j];
+            else{
+                
+                int up = matrix[i][j];
+                if(i>0) up += prev[j];
+                else up += 1e9;
+                
+                int left = matrix[i][j];
+                if(j>0) left+=temp[j-1];
+                else left += 1e9;
+                
+                temp[j] = min(up,left);
+            }
+        }
+        prev=temp;
+    }
+    
+    return prev[m-1];
+    
+}
+
+
+//========================================= Triangle =========================================================
+int f(int i, int j, int n,vector<vector<int>>& dp, vector<vector<int>>& triangle) {
+	if(i == n-1) return triangle[i][j];
+	
+	if(dp[i][j] != -1) return dp[i][j];
+	
+	int down = triangle[i][j] + f(i+1, j, n, dp, triangle);
+	int diagonal = triangle[i][j] + f(i+1, j+1, n, dp, triangle);
+	
+	return dp[i][j] = min(down, diagonal);
+}
+
+int minimumPathSum(vector<vector<int>>& triangle, int n){
+	vector<vector<int>> dp(n, vector<int>(n,-1));
+	
+	return f(0, 0, n, dp, triangle);
+}
+
+// Tabulation
+int minimumPathSum(vector<vector<int>>& triangle, int n){
+	vector<vector<int>> dp(n, vector<int>(n, 0));
+	
+	for(int j = 0; j < n; j++) dp[n-1][j] = triangle[n-1][j];
+	
+	for(int i = n-2; i >= 0; i--) {
+		for(int j = i; j >= 0; j--) {
+			int down = triangle[i][j] + dp[i+1][j];
+			int diagonal = triangle[i][j] + dp[i+1][j+1];
+			
+			dp[i][j] = min(down, diagonal);
+		}
+	}
+	
+	return dp[0][0];
+}
+
+// Space Optimization
+int minimumPathSum(vector<vector<int>>& triangle, int n){
+	vector<int> front(n, 0);
+	
+	for(int j = 0; j < n; j++) front[j] = triangle[n-1][j];
+	
+	for(int i = n-2; i >= 0; i--) {
+		vector<int> curr(n, 0);
+		
+		for(int j = i; j >= 0; j--) {
+			int down = triangle[i][j] + front[j];
+			int diagonal = triangle[i][j] + front[j+1];
+			
+			curr[j] = min(down, diagonal);
+		}
+		front = curr;
+	}
+	
+	return front[0];
+}
+
+
+//======================================= Max/Min Falling Path Sum ================================================
+//Recursion
+int f(int i, int j, vector<vector<int>> &matrix) {
+	if(j < 0 || j >= matrix[0].size()) return -1e8;
+	
+	if(i == 0) return matrix[i][j];
+	
+	int up = matrix[i][j] + f(i-1, j, matrix);
+	int ld = matrix[i][j] + f(i-1, j-1, matrix);
+	int rd = matrix[i][j] + f(i-1, j+1, matrix);
+	
+	return max(up, max(ld, rd));
+}
+
+int getMaxPathSum(vector<vector<int>> &matrix) {
+    int n = matrix.size();
+	int m = matrix[0].size();
+	
+	int maxi = -1e8;
+	
+	for(int j = 0; j < m; j++) {
+		maxi = max(maxi, f(n-1, j, matrix));
+	}
+
+	return maxi;
+}
+
+// Memoization
+int f(int i, int j, vector<vector<int>> &dp, vector<vector<int>> &matrix) {
+	if(j < 0 || j >= matrix[0].size()) return -1e8;
+	
+	if(i == 0) return matrix[i][j];
+	
+	if(dp[i][j] != -1) return dp[i][j];
+	
+	int up = matrix[i][j] + f(i-1, j, dp, matrix);
+	int ld = matrix[i][j] + f(i-1, j-1, dp, matrix);
+	int rd = matrix[i][j] + f(i-1, j+1, dp, matrix);
+	
+	return dp[i][j] = max(up, max(ld, rd));
+}
+
+int getMaxPathSum(vector<vector<int>> &matrix) {
+    int n = matrix.size();
+	int m = matrix[0].size();
+	vector<vector<int>> dp(n, vector<int>(m, -1));
+	
+	int maxi = -1e8;
+	
+	for(int j = 0; j < m; j++) {
+		maxi = max(maxi, f(n-1, j, dp, matrix));
+	}
+	
+	return maxi;
+}
+
+// Tabulation
+int getMaxPathSum(vector<vector<int>> &matrix) {
+    int n = matrix.size();
+	int m = matrix[0].size();
+	vector<vector<int>> dp(n, vector<int>(m, 0));
+	
+	for(int j = 0; j < m; j++) dp[0][j] = matrix[0][j];
+	
+	for(int i = 1; i < n; i++) {
+		for(int j = 0; j < m; j++) {
+			int up = matrix[i][j] + dp[i-1][j];
+			
+			int ld = matrix[i][j];
+			if(j >= 1)  ld += dp[i-1][j-1];
+			else ld += -1e9;
+			
+			int rd = matrix[i][j];
+			if(j < m-1) rd += dp[i-1][j+1];
+			else rd += -1e9;
+			
+			dp[i][j] = max(up, max(ld, rd));
+		}
+	}
+	
+	int maxi = -1e8;
+	
+	for(int j = 0; j < m; j++) {
+		maxi = max(maxi, dp[n-1][j]);
+	}
+	
+	return maxi;
+}
+
+// Space Optimization
+int getMaxPathSum(vector<vector<int>> &matrix) {
+    int n = matrix.size();
+	int m = matrix[0].size();
+	
+	vector<int> prev(m, 0);
+	
+	for(int j = 0; j < m; j++) prev[j] = matrix[0][j];
+	
+	for(int i = 1; i < n; i++) {
+		vector<int> curr(m, 0);
+		
+		for(int j = 0; j < m; j++) {
+			int up = matrix[i][j] + prev[j];
+			
+			int ld = matrix[i][j];
+			if(j >= 1)  ld += prev[j-1];
+			else ld += -1e9;
+			
+			int rd = matrix[i][j];
+			if(j < m-1) rd += prev[j+1];
+			else rd += -1e9;
+			
+			curr[j] = max(up, max(ld, rd));
+		}
+		prev = curr;
+	}
+	
+	int maxi = -1e8;
+	
+	for(int j = 0; j < m; j++) {
+		maxi = max(maxi, prev[j]);
+	}
+	
+	return maxi;
+}
+
+
+//=============================================== Cherry Pick ====================================================
+// Memoization
+int f(int i, int j1, int j2, int r, int c, vector<vector<int>> &grid, vector<vector<vector<int>>> &dp) {
+	if(j1 < 0 || j2 < 0 || j1 >= c || j2 >= c) 
+		return -1e8;
+	
+	if(i == r-1) {
+		if(j1 == j2) return grid[i][j1];
+		else return grid[i][j1] + grid[i][j2];
+	}
+	
+	if(dp[i][j1][j2] != -1) return dp[i][j1][j2];
+	
+	int maxi = -1e8;
+	
+	//explore all path of alice and bob simultaneously
+	for(int dj1 = -1; dj1 <= +1; dj1++) {
+		for(int dj2 = -1; dj2 <= +1; dj2++) {
+			int value = 0;
+			
+			if(j1 == j2) value = grid[i][j1];
+			else value = grid[i][j1] + grid[i][j2];
+			
+			value += f(i+1, j1+dj1, j2+dj2, r, c, grid, dp);
+			
+			maxi = max(maxi, value);
+		}
+	}
+	
+	return dp[i][j1][j2] = maxi;
+}
+
+int maximumChocolates(int r, int c, vector<vector<int>> &grid) {
+	//int dp[r][c][c]
+	vector<vector<vector<int>>> dp(r, vector<vector<int>>(c, vector<int>(c, -1)));
+    return f(0, 0, c-1, r, c, grid, dp);
+}
+
+// Tabulation
+int maximumChocolates(int n, int m, vector<vector<int>> &grid) {
+	
+	vector<vector<vector<int>>> dp(n, vector<vector<int>>(m, vector<int>(m, 0)));
+	
+    for(int j1 = 0; j1 < m; j1++) {
+		for(int j2 = 0; j2 < m; j2++) {
+			if(j1 == j2) 
+				dp[n-1][j1][j2] = grid[n-1][j1];
+			else 
+				dp[n-1][j1][j2] = grid[n-1][j1] + grid[n-1][j2];
+		}
+	}
+	
+	//Outer Nested Loops for travering DP Array
+	for(int i = n-2; i >= 0; i--) {
+		for(int j1 = 0; j1 < m; j1++) {
+			for(int j2 = 0; j2 < m; j2++) {
+				
+				int maxi = -1e8;
+				
+				//Inner nested loops to try out 9 options
+				for(int dj1 = -1; dj1 <= +1; dj1++) {
+					for(int dj2 = -1; dj2 <= +1; dj2++) {
+						
+						int value = 0;
+						
+						if(j1 == j2) value = grid[i][j1];
+						else value = grid[i][j1] + grid[i][j2];
+						
+						if(j1+dj1 >= 0 && j1+dj1 < m && j2+dj2 >= 0 && j2+dj2 < m)
+							value += dp[i+1][j1+dj1][j2+dj2];
+						else
+							value += -1e8;
+						
+						maxi = max(maxi, value);
+					}
+				}
+				
+				dp[i][j1][j2] = maxi;
+			}
+		}
+	}
+	
+	return dp[0][0][m-1];
+}
+
+// Space Optimization
+int maximumChocolates(int n, int m, vector<vector<int>> &grid) {
+	
+	vector<vector<int>> front(m , vector<int>(m, 0));
+	vector<vector<int>> curr(m , vector<int>(m, 0));
+	
+    for(int j1 = 0; j1 < m; j1++) {
+		for(int j2 = 0; j2 < m; j2++) {
+			if(j1 == j2) 
+				front[j1][j2] = grid[n-1][j1];
+			else 
+				front[j1][j2] = grid[n-1][j1] + grid[n-1][j2];
+		}
+	}
+	
+	//Outer Nested Loops for travering DP Array
+	for(int i = n-2; i >= 0; i--) {
+		for(int j1 = 0; j1 < m; j1++) {
+			for(int j2 = 0; j2 < m; j2++) {
+				
+				int maxi = -1e8;
+				
+				//Inner nested loops to try out 9 options
+				for(int dj1 = -1; dj1 <= +1; dj1++) {
+					for(int dj2 = -1; dj2 <= +1; dj2++) {
+						
+						int value = 0;
+						
+						if(j1 == j2) value = grid[i][j1];
+						else value = grid[i][j1] + grid[i][j2];
+						
+						if(j1+dj1 >= 0 && j1+dj1 < m && j2+dj2 >= 0 && j2+dj2 < m)
+							value += front[j1+dj1][j2+dj2];
+						else
+							value += -1e8;
+						
+						maxi = max(maxi, value);
+					}
+				}
+				
+				curr[j1][j2] = maxi;
+			}
+		}
+		front = curr;
+	}
+	
+	return front[0][m-1];
+}

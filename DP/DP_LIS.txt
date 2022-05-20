@@ -1,0 +1,222 @@
+//========== Longest Increasing Subsequence ==========
+int f(int ind, int prevInd, int n, int arr[], vector<vector<int>> &dp) {
+	if(ind == n) return 0;
+	
+	if(dp[ind][prevInd+1] != -1) return dp[ind][prevInd+1];
+	
+	int notTake = 0 + f(ind+1, prevInd, n, arr, dp);
+	
+	int take = 0;
+	if(prevInd == -1 || arr[ind] > arr[prevInd]) 
+		take = 1 + f(ind+1, ind, n, arr, dp);
+	
+	return dp[ind][prevInd+1] = max(notTake, take);
+}
+int longestIncreasingSubsequence(int arr[], int n) {
+    vector<vector<int>> dp(n, vector<int>(n+1, -1));
+	
+	return f(0, -1, n, arr, dp);
+}
+
+int longestIncreasingSubsequence(int arr[], int n) {
+    vector<vector<int>> dp(n+1, vector<int>(n+1, 0));
+	
+	for(int ind = n-1; ind >= 0; ind--) {
+		for(int prevInd = ind-1; prevInd >= -1; prevInd--) {
+			int notTake = 0 + dp[ind+1][prevInd+1];
+
+			int take = 0;
+			if(prevInd == -1 || arr[ind] > arr[prevInd]) 
+				take = 1 + dp[ind+1][ind+1];
+
+			dp[ind][prevInd+1] = max(notTake, take);			
+		}
+	}
+	
+	return dp[0][0];
+}
+
+int longestIncreasingSubsequence(int arr[], int n) {
+    vector<int> front(n+1, 0), curr(n+1, 0);
+	
+	for(int ind = n-1; ind >= 0; ind--) {
+		for(int prevInd = ind-1; prevInd >= -1; prevInd--) {
+			int notTake = 0 + front[prevInd+1];
+
+			int take = 0;
+			if(prevInd == -1 || arr[ind] > arr[prevInd]) 
+				take = 1 + front[ind+1];
+
+			curr[prevInd+1] = max(notTake, take);			
+		}
+		front = curr;
+	}
+	
+	return front[0];
+}
+
+// ALGORITHM
+int longestIncreasingSubsequence(int arr[], int n) {
+	vector<int> dp(n, 1);
+	int maxLen = 0;
+	
+	for(int i = 0; i < n; i++) {
+		for(int prev = 0; prev < i; prev++) {
+			if(arr[prev] < arr[i])
+				dp[i] = max(dp[i], 1 + dp[prev]);
+		}
+		maxLen = max(maxLen, dp[i]);
+	}
+	
+	return maxLen;
+}
+
+// BINARY SEARCH
+int longestIncreasingSubsequence(int arr[], int n) {
+	vector<int> temp;
+	temp.push_back(arr[0]);
+	int len = 1;
+	
+	for(int i = 1; i < n; i++) {
+		if(arr[i] > temp.back()) {
+			temp.push_back(arr[i]);
+			len++;
+		}
+		else {
+			int ind = lower_bound(temp.begin(), temp.end(), arr[i]) - temp.begin();
+			temp[ind] = arr[i];
+		}
+	}
+	
+	return len;
+}
+
+
+//========== Largest Divisible Subset ==========
+vector<int> divisibleSet(vector<int> &arr){
+	int n = arr.size();
+    vector<int> dp(n, 1), hash(n);
+	int maxLen = 1;
+	int lastIndex = 0;
+	
+	sort(arr.begin(), arr.end());
+	
+	for(int i = 0; i < n; i++) {
+		hash[i] = i;
+		for(int prev = 0; prev < i; prev++) {
+			if(arr[i] % arr[prev] == 0 && 1 + dp[prev] > dp[i]) {
+				dp[i] = 1 + dp[prev];
+				hash[i] = prev; 
+			}
+		}
+		if(dp[i] > maxLen) {
+			maxLen = dp[i];
+			lastIndex = i;
+		}
+	}
+	
+	vector<int> ans;
+	ans.push_back(arr[lastIndex]);
+	
+	while(hash[lastIndex] != lastIndex) {
+		lastIndex = hash[lastIndex];
+		ans.push_back(arr[lastIndex]);
+	}
+	
+	reverse(ans.begin(), ans.end());
+	
+	return ans;
+}
+
+
+//============= Longest String Chain =============
+//s1 -> the larger string
+bool checkPossible(string &s1, string &s2) {
+	if(s1.size() != s2.size() + 1) return false;
+	
+	int first = 0, second = 0;
+	while(first < s1.size()) {
+		if(second < s2.size() && s1[first] == s2[second]) {
+			first++;
+			second++;
+		}
+		else first++;
+	}
+	
+	if(first == s1.size() && second == s2.size()) return true;
+	
+	return false;
+}
+bool comp(string &s1, string &s2) {
+	return s1.size() < s2.size();
+}
+int longestStrChain(vector<string> &arr) {
+	sort(arr.begin(), arr.end(), comp);
+	int n = arr.size();
+	vector<int> dp(n, 1);
+	int maxLen = 0;
+	
+	for(int i = 0; i < n; i++) {
+		for(int prev = 0; prev < i; prev++) {
+			if(checkPossible(arr[i], arr[prev]))
+				dp[i] = max(dp[i], 1 + dp[prev]);
+		}
+		maxLen = max(maxLen, dp[i]);
+	}
+	
+	return maxLen;
+}
+
+
+//============= Longest Bitonic Sequence ============
+int longestBitonicSequence(vector<int>& arr, int n) {
+	vector<int> dp1(n, 1), dp2(n, 1);
+	int maxLen = 0;
+	
+	for(int i = 0; i < n; i++) {
+		for(int prev = 0; prev < i; prev++) {
+			if(arr[prev] < arr[i])
+				dp1[i] = max(dp1[i], 1 + dp1[prev]);
+		}
+	}
+	
+	for(int i = n-1; i >= 0; i--) {
+		for(int prev = n-1; prev > i; prev--) {
+			if(arr[prev] < arr[i])
+				dp2[i] = max(dp2[i], 1 + dp2[prev]);
+		}
+		maxLen = max(maxLen, dp1[i] + dp2[i] - 1);
+	}
+	
+	return maxLen;
+} 
+
+
+//============= Number of LIS ============
+int findNumberOfLIS(vector<int> &arr) {
+	int n = arr.size();
+	vector<int> dp(n, 1), count(n, 1);
+	int maxLen = 1;
+	
+	for(int i = 0; i < n; i++) {
+		for(int prev = 0; prev < i; prev++) {
+			if(arr[prev] < arr[i] && 1 + dp[prev] > dp[i]) {
+				dp[i] = 1 + dp[prev];
+				//inherit
+				count[i] = count[prev];
+			}
+			else if(arr[prev] < arr[i] && 1 + dp[prev] == dp[i]) {
+				//same LIS len, but increase the count
+				count[i] += count[prev];
+			}
+		}
+		maxLen = max(maxLen, dp[i]);
+	}
+	
+	int numLIS = 0;
+	for(int i = 0; i < n; i++) {
+		if(dp[i] == maxLen) numLIS += count[i];
+	}
+	
+	return numLIS;
+}

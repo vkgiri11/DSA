@@ -1,0 +1,566 @@
+Subset with sum K
+Partition Equal Subset Sum
+Partition a set into two subsets such that the difference of subset sums is minimum
+Number Of Subsets
+0 1 Knapsack
+Coin Change
+Coin Change 2
+Unbounded Knapsack
+Rod Cutting Problem
+
+// =========================================== Subset with sum K ===============================================
+bool f(int ind, int target, vector<int> &arr, vector<vector<int>> &dp) {
+	if(target == 0) return true;
+	
+	if(ind == 0) return arr[0] == target;
+	
+	if(dp[ind][target] != -1) return dp[ind][target];
+	
+	bool notTake = f(ind-1, target, arr, dp);
+	
+	bool take = false;
+	
+	if(arr[ind] <= target) take = f(ind-1, target-arr[ind], arr, dp);
+	
+	return dp[ind][target] = take | notTake;
+}
+
+bool subsetSumToK(int n, int k, vector<int> &arr) {
+	vector<vector<int>> dp(n, vector<int>(k+1, -1));
+	return f(n-1,  k, arr, dp);
+}
+
+// Tabulation
+bool subsetSumToK(int n, int k, vector<int> &arr) {
+	vector<vector<bool>> dp(n, vector<bool>(k+1, 0));
+	
+	for(int i = 0; i < n-1; i++) dp[i][0] = true;
+	
+	dp[0][arr[0]] = true;
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int target = 1; target <= k; target++) {
+			bool notTake = dp[ind-1][target];
+				
+			bool take = false;
+			
+			if(arr[ind] <= target) take = dp[ind-1][target-arr[ind]];
+			
+			dp[ind][target] = take | notTake;
+		}
+	}
+	
+	return dp[n-1][k];
+}
+
+// Space Optmz
+bool subsetSumToK(int n, int k, vector<int> &arr) {
+	vector<bool> prev(k+1, 0), curr(k+1, 0);
+	
+	//when target is zero, its always true;
+	prev[0] = true, curr[0] = true;
+	
+	prev[arr[0]] = true;
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int target = 1; target <= k; target++) {
+			bool notTake = prev[target];
+				
+			bool take = false;
+			
+			if(arr[ind] <= target) take = prev[target-arr[ind]];
+			
+			curr[target] = take | notTake;
+		}
+		prev = curr;
+	}
+	
+	return prev[k];
+}
+
+
+// ===================================== Partition Equal Subset Sum ========================================
+bool canPartition(vector<int> &arr, int n) {
+	
+	int totalSum = 0;
+	
+	for(int i = 0; i < n; i++) totalSum += arr[i];
+	
+	if(totalSum % 2) return false;
+	
+	int target = totalSum / 2;
+	
+	return subsetSumToK(n, target, arr);
+}
+
+
+// ========== Partition a set into two subsets such that the difference of subset sums is minimum ===============
+int minSubsetSumDifference(vector<int>& arr, int n) {
+	int totalSum = 0;
+	for(int i = 0; i < n; i++) totalSum += arr[i];
+	
+	int k = totalSum;
+	
+	//Subset Sum code
+	vector<vector<bool>> dp(n, vector<bool>(k+1, 0));
+	
+	for(int i = 0; i < n; i++) dp[i][0] = true;
+	
+	if(arr[0] <= k) dp[0][arr[0]] = true;
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int target = 1; target <= k; target++) {
+			bool notTake = dp[ind-1][target];
+				
+			bool take = false;
+			
+			if(arr[ind] <= target) take = dp[ind-1][target-arr[ind]];
+			
+			dp[ind][target] = take | notTake;
+		}
+	}
+	
+	int miniAns = 1e9;
+	for(int s1 = 0; s1 <= totalSum/2 ; s1++) {
+		//if in last row s1 is true
+        //replace dp[n-1] with prev if using space optmzd code
+		if(dp[n-1][s1] == true) {
+			miniAns = min(miniAns, abs((totalSum-s1) - s1) );
+		}
+	}
+	
+	return miniAns;
+}
+
+
+// =================================== Number Of Subsets ==================================
+int f(int ind, int target, vector<vector<int>> &dp, vector<int> &num) {
+	if(target == 0) return 1;
+	
+	if(ind == 0) return num[ind] == target;
+	
+	if(dp[ind][target] != -1) return dp[ind][target];
+	
+	int notPick = f(ind-1, target, dp, num);
+	
+	int pick = 0;
+	if(num[ind] <= target) pick = f(ind-1, target - num[ind], dp, num);
+	
+	return dp[ind][target] = pick + notPick;
+}
+int findWays(vector<int> &num, int tar) {
+	int n = num.size();
+    vector<vector<int>> dp(n, vector<int>(tar + 1, -1));
+	
+	return f(n-1, tar, dp, num);
+}
+
+
+int findWays(vector<int> &num, int tar) {
+	int n = num.size();
+	
+    vector<vector<int>> dp(n, vector<int>(tar + 1, 0));
+	
+	for(int i = 0; i < n; i++) dp[i][0] = 1;
+	
+	if(num[0] <= tar) dp[0][num[0]] = 1;
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int sum = 0; sum <= tar; sum++) {
+			int notPick = dp[ind-1][sum];
+			
+			int pick = 0;
+			if(num[ind] <= sum) pick = dp[ind-1][sum - num[ind]];
+			
+			dp[ind][sum] = pick + notPick;
+		}
+	}
+	
+	return dp[n-1][tar];
+}
+
+
+int findWays(vector<int> &num, int tar) {
+	int n = num.size();
+	
+    vector<int> prev(tar + 1, 0), curr(tar + 1, 0);
+	
+	prev[0] = curr[0] = 1;
+	
+	if(num[0] <= tar) prev[num[0]] = 1;
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int sum = 0; sum <= tar; sum++) {
+			int notPick = prev[sum];
+			
+			int pick = 0;
+			if(num[ind] <= sum) pick = prev[sum - num[ind]];
+			
+			curr[sum] = pick + notPick;
+		}
+		prev = curr;
+	}
+	
+	return prev[tar];
+}
+
+// if array contains '0'
+int f(int ind, int target, vector<vector<int>> &dp, vector<int> &num) {
+	
+	if(ind == 0){
+        if(target == 0 && num[0] == 0) return 2;
+        if(target == 0 || num[0] == target) return 1;
+        return 0;
+    }
+	
+	if(dp[ind][target] != -1) return dp[ind][target];
+	
+	int notPick = f(ind-1, target, dp, num);
+	
+	int pick = 0;
+	if(num[ind] <= target) pick = f(ind-1, target - num[ind], dp, num);
+	
+	return dp[ind][target] = pick + notPick;
+}
+int findWays(vector<int> &num, int tar) {
+	int n = num.size();
+    vector<vector<int>> dp(n, vector<int>(tar + 1, -1));
+	
+	return f(n-1, tar, dp, num);
+}
+
+
+
+// =================================== Partitions With Given Difference =========================================
+
+// if array contains 0 (applicable to above problem too)
+int mod = (int)(1e9 + 7);
+int findWays(vector<int> &num, int tar) {
+	int n = num.size();
+	
+    vector<vector<int>> dp(n, vector<int>(tar + 1, 0));
+	
+	if(num[0] == 0) dp[0][0] = 2;
+	else dp[0][0] = 1;
+	
+	if(num[0] != 0 && num[0] <= tar) dp[0][num[0]] = 1;
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int sum = 0; sum <= tar; sum++) {
+			int notPick = dp[ind-1][sum];
+			
+			int pick = 0;
+			if(num[ind] <= sum) pick = dp[ind-1][sum - num[ind]];
+			
+			dp[ind][sum] = (pick + notPick) % mod;
+		}
+	}
+	
+	return dp[n-1][tar];
+}
+int countPartitions(int n, int d, vector<int> &arr) {
+	int totSum = 0;
+	for(auto &it: arr) totSum += it;
+	
+	if(totSum - d < 0 || (totSum - d) % 2) return 0;
+	
+	return findWays(arr, (totSum-d)/2);
+}
+
+
+
+//========================================== 0 1 Knapsack ========================================
+int f(int ind, int W, vector<int> weight, vector<int> value, vector<vector<int>> &dp) {
+	if(ind == 0) {
+		if(weight[0] <= W) return value[0];
+		else return 0;
+	}
+	
+	if(dp[ind][W] != -1) return dp[ind][W];
+	
+	int notTake = f(ind-1, W, weight, value, dp);
+	
+	int take = -1e9;
+	if(weight[ind] <= W) take = value[ind] + f(ind-1, W-weight[ind], weight, value, dp);
+	
+	return dp[ind][W] = max(take, notTake);
+}
+int knapsack(vector<int> weight, vector<int> value, int n, int maxWeight) {
+	vector<vector<int>> dp(n, vector<int>(maxWeight+1, -1));
+	
+	return f(n-1, maxWeight, weight, value, dp);
+}
+
+int knapsack(vector<int> wt, vector<int> val, int n, int maxWeight) {
+	vector<vector<int>> dp(n, vector<int>(maxWeight+1, 0));
+	
+	for(int w = wt[0]; w <= maxWeight; w++) dp[0][w] = val[0];
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int w = 0; w <= maxWeight; w++) {
+			int notTake = dp[ind-1][w];
+			
+			int take = -1e9;
+			if(wt[ind] <= w) take = val[ind] + dp[ind-1][w-wt[ind]];
+			
+			dp[ind][w] = max(notTake, take);
+		}
+	}
+	
+	return dp[n-1][maxWeight];
+}
+
+// Space optimization
+int knapsack(vector<int> wt, vector<int> val, int n, int maxWeight) {
+	vector<int> prev(maxWeight+1, 0), curr(maxWeight+1, 0);
+	
+	for(int w = wt[0]; w <= maxWeight; w++) prev[w] = val[0];
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int w = 0; w <= maxWeight; w++) {
+			int notTake = prev[w];
+			
+			int take = -1e9;
+			if(wt[ind] <= w) take = val[ind] + prev[w-wt[ind]];
+			
+			curr[w] = max(notTake, take);
+		}
+		prev = curr;
+	}
+	
+	return prev[maxWeight];
+}
+
+// Space optimization to single array
+int knapsack(vector<int> wt, vector<int> val, int n, int maxWeight) {
+	vector<int> prev(maxWeight+1, 0);
+	
+	for(int w = wt[0]; w <= maxWeight; w++) prev[w] = val[0];
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int w = maxWeight; w >= 0; w--) {
+			int notTake = prev[w];
+			
+			int take = -1e9;
+			if(wt[ind] <= w) take = val[ind] + prev[w-wt[ind]];
+			
+			prev[w] = max(notTake, take);
+		}
+	}
+	
+	return prev[maxWeight];
+}
+
+
+//================================ Minimum Elements/ Coin Change ==========================================
+int f(int ind, int T, vector<vector<int>> &dp, vector<int> &num) {
+	if(ind == 0) {
+		if(T % num[0] == 0) return T/num[0];
+		else return 1e9;
+	}
+	
+	if(dp[ind][T] != -1) return dp[ind][T];
+	
+	int notPick = 0 + f(ind-1, T, dp, num);
+	
+	int pick = 1e9;
+	if(num[ind] <= T) pick = 1 + f(ind, T-num[ind], dp, num);
+	
+	return dp[ind][T] = min(pick, notPick);
+}
+int minimumElements(vector<int> &num, int target) {
+    int n = num.size();
+	vector<vector<int>> dp(n, vector<int>(target+1, -1));
+	
+	int ans = f(n-1, target, dp, num);
+	
+	// if it's not possible to reach to target then print "-1".
+	if(ans >= 1e9) return -1;
+	else return ans;
+}
+
+
+int minimumElements(vector<int> &num, int target) {
+    int n = num.size();
+	vector<vector<int>> dp(n, vector<int>(target+1, 0));
+	
+	for(int T = 0; T <= target; T++) {
+		if(T % num[0] == 0) dp[0][T] = T/num[0];
+		else dp[0][T] = 1e9;
+	}
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int T = 0; T <= target; T++) {
+			int notPick = 0 + dp[ind-1][T];
+	
+			int pick = 1e9;
+			if(num[ind] <= T) pick = 1 + dp[ind][T-num[ind]];
+	
+			dp[ind][T] = min(pick, notPick);
+		}
+	}
+	
+	int ans = dp[n-1][target];
+	
+	// if it's not possible to reach to target then print "-1".
+	if(ans >= 1e9) return -1;
+	else return ans;
+}
+
+int minimumElements(vector<int> &num, int target) {
+    int n = num.size();
+	vector<int> prev(target+1, 0), curr(target+1, 0);
+	
+	for(int T = 0; T <= target; T++) {
+		if(T % num[0] == 0) prev[T] = T/num[0];
+		else prev[T] = 1e9;
+	}
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int T = 0; T <= target; T++) {
+			int notPick = 0 + prev[T];
+	
+			int pick = 1e9;
+			if(num[ind] <= T) pick = 1 + curr[T-num[ind]];
+	
+			curr[T] = min(pick, notPick);
+		}
+		prev = curr;
+	}
+	
+	int ans = prev[target];
+	
+	// if it's not possible to reach to target then print "-1".
+	if(ans >= 1e9) return -1;
+	else return ans;
+}
+
+
+//================================ Coin Change 2 ==========================================
+long minimumElements(int *num, int n, int target) {
+	vector<long> prev(target+1, 0), curr(target+1, 0);
+	
+	for(int T = 0; T <= target; T++) {
+		if(T % num[0] == 0) prev[T] = 1;
+	}
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int T = 0; T <= target; T++) {
+			long notPick = 0 + prev[T];
+	
+			long pick = 0;
+			if(num[ind] <= T) pick = curr[T-num[ind]];
+	
+			curr[T] = pick + notPick;
+		}
+		prev = curr;
+	}
+	
+	return prev[target];
+}
+long countWaysToMakeChange(int *denominations, int n, int value){
+    return minimumElements(denominations, n, value);
+}
+
+
+//=========================================== Unbounded Knapsack ==========================================
+int unboundedKnapsack(int n, int maxWeight, vector<int> &val, vector<int> &wt) {
+    vector<vector<int>> dp(n, vector<int>(maxWeight+1, 0));
+	
+	for(int w = wt[0]; w <= maxWeight; w++) dp[0][w] = ((int)w/wt[0]) * val[0];
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int w = 0; w <= maxWeight; w++) {
+			int notTake = dp[ind-1][w];
+			
+			int take = 0;
+			if(wt[ind] <= w) take = val[ind] + dp[ind][w-wt[ind]];
+			
+			dp[ind][w] = max(notTake, take);
+		}
+	}
+	
+	return dp[n-1][maxWeight];
+}
+
+// 1D Array Space optimization
+int unboundedKnapsack(int n, int maxWeight, vector<int> &val, vector<int> &wt) {
+    vector<int> prev(maxWeight+1, 0);
+	
+	for(int w = wt[0]; w <= maxWeight; w++) prev[w] = ((int)w/wt[0]) * val[0];
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int w = 0; w <= maxWeight; w++) {
+			int notTake = prev[w];
+			
+			int take = 0;
+			if(wt[ind] <= w) take = val[ind] + prev[w-wt[ind]];
+			
+			prev[w] = max(notTake, take);
+		}
+	}
+	
+	return prev[maxWeight];
+}
+
+
+//=========================================== Rod Cutting Problem ==========================================
+//N -> rod len
+int f(int ind, int N, vector<int> &price, vector<vector<int>> &dp){
+	if(ind == 0) return N * price[0];
+	
+	if(dp[ind][N] != -1) return dp[ind][N];
+	
+	int notTake = 0 + f(ind-1, N, price, dp);
+	
+	int take = -1e9; int rodLen = ind+1;
+	if(rodLen <= N) take = price[ind] + f(ind, N-rodLen, price, dp);
+	
+	return dp[ind][N] = max(take, notTake);
+}
+int cutRod(vector<int> &price, int n){
+	vector<vector<int>> dp(n, vector<int>(n+1, -1));
+	
+	return f(n-1, n, price, dp);
+}
+
+// Tabulation
+int cutRod(vector<int> &price, int n){
+	vector<vector<int>> dp(n, vector<int>(n+1, 0));
+	
+	for(int len = 0; len <= n; len++) dp[0][len] = len * price[0];
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int len = 0; len <= n; len++) {
+			int notTake = 0 + dp[ind-1][len];
+			
+			int take = -1e9; int rodLen = ind+1;
+			if(rodLen <= len) take = price[ind] + dp[ind][len-rodLen];
+			
+			dp[ind][len] = max(take, notTake);
+		}
+	}
+	
+	return dp[n-1][n];
+}
+
+// 1D space optimization
+int cutRod(vector<int> &price, int n){
+	vector<int> prev(n+1, 0);
+	
+	for(int len = 0; len <= n; len++) prev[len] = len * price[0];
+	
+	for(int ind = 1; ind < n; ind++) {
+		for(int len = 0; len <= n; len++) {
+			int notTake = 0 + prev[len];
+			
+			int take = -1e9; int rodLen = ind+1;
+			if(rodLen <= len) take = price[ind] + prev[len-rodLen];
+			
+			prev[len] = max(take, notTake);
+		}
+	}
+	
+	return prev[n];
+}
+

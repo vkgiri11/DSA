@@ -1,0 +1,282 @@
+Fibonacci
+Frog Jump
+Frog with K jumps
+Max sum of non adjacent elems
+House Robber 2
+
+
+** Whenever there is (i-1), (i-2).... in the tabulation. Space Optimization can always be done
+
+
+//===================================== Fibonacci ========================================
+#include <bits/stdc++.h>
+using namespace std;
+// Memoization
+// TC - O(n)
+// SC - O(n) (Stack Space) + O(n) (array)
+
+int f(int n, vector<int> &dp) {
+    if(n <= 1) return n;
+    
+    if(dp[n] != -1) return dp[n];
+    
+    return dp[n] = f(n-1, dp) + f(n-2, dp);
+}
+
+int main() {
+    int n;
+    cin >> n;
+    
+    vector<int> dp(n+1, -1);
+    
+    cout << f(n, dp);
+}
+
+
+#include <bits/stdc++.h>
+using namespace std;
+// Tabulation
+// TC - O(n)
+// Sc - O(n)
+
+int main() {
+  int n=5;
+  vector<int> dp(n+1,-1);
+  
+  dp[0]= 0;
+  dp[1]= 1;
+  
+  for(int i=2; i<=n; i++){
+      dp[i] = dp[i-1]+ dp[i-2];
+  }
+
+  cout<<dp[n];
+  return 0;
+}
+
+
+#include <bits/stdc++.h>
+using namespace std;
+// Space Optimization on Tabulation
+// TC - O(n)
+
+int main() {
+    int n;
+    cin >> n;
+
+    int prev2 = 0;
+    int prev = 1;
+
+    for(int i = 2; i <= n; i++) {
+        int curr = prev + prev2;
+        prev2 = prev;
+        prev = curr;
+    }
+
+    cout << prev;
+}
+
+
+//===================================== Frog Jump ========================================
+// Memoization
+// TC - O(n)
+// SC - O(n) (Stack Space) + O(n) (array)
+int helper(int index, vector<int> &heights, vector<int> &dp) {
+	if(index == 0) return 0;
+	
+	if(dp[index] != -1) return dp[index];
+	
+	int left = helper(index - 1, heights, dp) + abs(heights[index-1] - heights[index]);
+	
+	int right = INT_MAX;
+	
+	if(index >  1) right = helper(index - 2, heights, dp) + abs(heights[index-2] - heights[index]);
+	
+	return dp[index] = min(left, right);
+}
+
+int frogJump(int n, vector<int> &heights) {
+	vector<int> dp(n+1, -1);
+ 	return helper(n-1, heights, dp);
+}
+
+
+// Tabulation
+// TC - O(n)
+// Sc - O(n)
+int frogJump(int n, vector<int> &heights)
+{
+	vector<int> dp(n, 0);
+	
+	dp[0] = 0;
+	
+	for(int i = 1; i < n; i++) {
+		int fs = dp[i-1] + abs(heights[i] - heights[i-1]);
+		
+		int ss = INT_MAX;
+		
+		if(i > 1) ss = dp[i-2] + abs(heights[i] - heights[i-2]);
+		
+		dp[i] = min(fs, ss);
+	}
+	
+	return dp[n-1];
+}
+
+
+// Space Optimization on Tabulation
+// TC - O(n)
+int frogJump(int n, vector<int> &heights)
+{
+	int prev = 0;
+	int prev2 = 0;
+	
+	for(int i = 1; i < n; i++) {
+		int fs = prev + abs(heights[i] - heights[i-1]);
+		
+		int ss = INT_MAX;
+		
+		if(i > 1) ss = prev2 + abs(heights[i] - heights[i-2]);
+		
+		int curr = min(fs, ss);
+		
+		prev2 = prev;
+		prev = curr;
+	}
+	
+	return prev;
+}
+
+//===================================== Frog Jump with K jumps ========================================
+
+// Tabulation
+// TC - O(n*k)
+// Sc - O(n)
+int frogJump(int n, vector<int> &heights, int k) {
+    vector<int> dp(n, 0);
+
+    dp[0] = 0;
+
+    for(int i = 0; i < n; i++) {
+        int minEnergy = INT_MAX;
+        for(int j = 1; j <= k; j++) {
+            if((i - j) >= 0) {
+                int reqEneregy = dp[i-j] + abs(heights[j] - heights[i]);
+                minEnergy = min(minEnergy, reqEneregy)
+            }
+            dp[i] = minEnergy;
+        }
+    }
+
+    cout << dp[n-1];
+
+}
+
+
+//================================ Max sum of non adjacent Elements ===================================
+// Memoization
+int f(int idx, vector<int> &nums, vector<int> &dp) {
+	
+	//if we reached at 0, means we didnt pick nums[1], so we can return it
+	if(idx == 0) return nums[0];
+	if(idx < 0) return 0;
+	
+	if(dp[idx] != -1) return dp[idx];
+	
+	int pick = nums[idx] + f(idx-2, nums, dp);
+	int notPick = 0 + f(idx-1, nums, dp);
+	
+	return dp[idx] = max(pick, notPick);
+}
+
+
+int maximumNonAdjacentSum(vector<int> &nums){
+    int n = nums.size();
+	
+	vector<int> dp(n, -1);
+	
+	return f(n-1, nums, dp);
+}
+
+//Tabulation
+int maximumNonAdjacentSum(vector<int> &nums){
+    int n = nums.size();
+	
+	vector<int> dp(n, 0);
+	
+	dp[0] = nums[0];
+	int neg = 0;
+	
+	for(int i = 1; i < n; i++) {
+		int pick = nums[i];
+		if(i > 1) pick += dp[i-2];
+		
+		int notPick = 0 + dp[i-1];
+		
+		dp[i] = max(pick, notPick);
+	}
+	
+	return dp[n-1];
+}
+
+// Space Optimization on Tabulation
+int maximumNonAdjacentSum(vector<int> &nums){
+    int n = nums.size();
+	
+	int prev = nums[0];
+	int prev2 = 0;
+	
+	for(int i = 1; i < n; i++) {
+		int pick = nums[i];
+		if(i > 1) pick += prev2;
+		
+		int notPick = 0 + prev;
+		
+		int curr = max(pick, notPick);
+		
+		prev2 = prev;
+		prev = curr;
+	}
+	
+	return prev;
+}
+
+//================================ House Robber 2 ===================================
+// Space Optimization of prev Problem
+long long int maximumNonAdjacentSum(vector<int> &nums){
+    long long int n = nums.size();
+	
+	long long int prev = nums[0];
+	long long int prev2 = 0;
+	
+	for(long long int i = 1; i < n; i++) {
+		long long int pick = nums[i];
+		if(i > 1) pick += prev2;
+		
+		long long int notPick = 0 + prev;
+		
+		long long int curr = max(pick, notPick);
+		
+		prev2 = prev;
+		prev = curr;
+	}
+	
+	return prev;
+}
+
+long long int houseRobber(vector<int>& valueInHouse)
+{
+    long long int n = valueInHouse.size();
+	vector<int> temp1, temp2;
+	
+	if(n == 1) return valueInHouse[0];
+	
+	for(long long int i = 0; i < n; i++) {
+		//array with all elements except first
+		if(i != 0) temp1.push_back(valueInHouse[i]);
+		//array with all elements except last
+		if(i != n-1) temp2.push_back(valueInHouse[i]);
+	}
+	
+	return max(maximumNonAdjacentSum(temp1), maximumNonAdjacentSum(temp2));
+}

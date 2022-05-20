@@ -1,0 +1,258 @@
+//============== Best Time to Buy and Sell Stock ==============
+// single transaction
+int maximumProfit(vector<int> &prices) {
+    int minTillNow = prices[0];
+	int profit = 0;
+	
+	for(int i = 1; i < prices.size(); i++) {
+		int cost = prices[i] - minTillNow;
+		profit = max(profit, cost);
+		minTillNow = min(minTillNow, prices[i]);
+	}
+	
+	return profit;
+}
+
+
+//================= Best Time to Buy and Sell Stock - II ===============
+// as many transactions as you want
+long f(int ind, int canBuy, int n, long *values, vector<vector<long>> &dp) {
+	if(ind == n) return 0;
+	
+	if(dp[ind][canBuy] != -1) return dp[ind][canBuy];
+	
+	long profit = 0;
+	
+	if(canBuy) {
+		long buy = -values[ind] + f(ind+1, 0, n, values, dp);
+		long notBuy = f(ind+1, 1, n, values, dp);
+		profit = max(buy, notBuy);
+	}
+	else {
+		long sell = values[ind] + f(ind+1, 1, n, values, dp);
+		long notSell = f(ind+1, 0, n, values, dp);
+		profit = max(sell, notSell);
+	}
+	
+	return dp[ind][canBuy] = profit;
+}
+long getMaximumProfit(long *values, int n) {
+    vector<vector<long>> dp(n+1, vector<long>(2, -1));
+	
+	return f(0, 1, n, values, dp);
+}
+
+
+long getMaximumProfit(long *values, int n) {
+    vector<vector<long>> dp(n+1, vector<long>(2, 0));
+	
+	dp[0][0] = dp[0][1] = 0;
+	
+	for(int ind = n-1; ind >= 0; ind--) {
+		for(int canBuy = 0; canBuy <= 1; canBuy++) {
+			long profit = 0;
+			
+			if(canBuy) {
+				long buy = -values[ind] + dp[ind+1][0];
+				long notBuy = dp[ind+1][1];
+				profit = max(buy, notBuy);
+			}
+			else {
+				long sell = values[ind] + dp[ind+1][1];
+				long notSell = dp[ind+1][0];
+				profit = max(sell, notSell);
+			}
+			
+			dp[ind][canBuy] = profit;
+		}
+	}
+	
+	return dp[0][1];
+}
+
+
+long getMaximumProfit(long *values, int n) {
+	long frontNotBuy, frontBuy, currNotBuy, currBuy;
+	
+	frontNotBuy = frontBuy = 0;
+	
+	for(int ind = n-1; ind >= 0; ind--) {
+		
+		currBuy = max(-values[ind] + frontNotBuy, frontBuy);
+		
+		currNotBuy = max(values[ind] + frontBuy, frontNotBuy);
+		
+		frontNotBuy = currNotBuy;
+		frontBuy = currBuy;
+	}
+	
+	return frontBuy;
+}
+
+
+//============== Best Time to Buy and Sell Stock - III ==============
+int f(int ind, int canBuy, int limit, int n, vector<int>& prices, 
+	  vector<vector<vector<int>>> &dp) {
+	
+	if(limit == 0 || ind == n) return 0;
+	
+	if(dp[ind][canBuy][limit] != -1) return dp[ind][canBuy][limit];
+	
+	int profit = 0;
+	if(canBuy) {
+		int buy = -prices[ind] + f(ind+1, 0, limit, n, prices, dp);
+		int notBuy = f(ind+1, 1, limit, n, prices, dp);
+		profit = max(buy, notBuy);
+	}
+	else {
+		int sell = prices[ind] + f(ind+1, 1, limit-1, n, prices, dp);
+		int notSell = f(ind+1, 0, limit, n, prices, dp);
+		profit = max(sell, notSell);
+	}
+	
+	return dp[ind][canBuy][limit] = profit;
+}
+int maxProfit(vector<int>& prices, int n){
+   	vector<vector<vector<int>>> dp(n, vector<vector<int>>(2, vector<int>(3, -1)));
+	
+    // atmost 2 transactions
+	return f(0, 1, 2, n, prices, dp);
+}
+
+int maxProfit(vector<int>& prices, int n) {
+ 	vector<vector<vector<int>>> dp(n+1, vector<vector<int>>(2, vector<int>(3, 0)));
+	
+	//Writing base cases is not required since
+	//the dp is anyway initialized with 0
+	
+	for(int ind = n-1; ind >= 0; ind--) {
+		for(int canBuy = 0; canBuy <= 1; canBuy++) {
+			// cap = 0 is already 0, we can start from 1
+			for(int limit = 1; limit <= 2; limit++) {
+				int profit = 0;
+				
+				if(canBuy) {
+					int buy = -prices[ind] + dp[ind+1][0][limit];
+					int notBuy = dp[ind+1][1][limit];
+					profit = max(buy, notBuy);
+				}
+				else {
+					int sell = prices[ind] + dp[ind+1][1][limit-1];
+					int notSell = dp[ind+1][0][limit];
+					profit = max(sell, notSell);
+				}
+				
+				dp[ind][canBuy][limit] = profit;
+			}
+		}
+	}
+	
+	return dp[0][1][2];
+}
+
+int maxProfit(vector<int>& prices, int n) {
+ 	vector<vector<int>> front(2, vector<int>(3, 0));
+	vector<vector<int>> curr(2, vector<int>(3, 0));
+
+	for(int ind = n-1; ind >= 0; ind--) {
+		for(int canBuy = 0; canBuy <= 1; canBuy++) {
+			for(int limit = 1; limit <= 2; limit++) {
+				int profit = 0;
+				
+				if(canBuy) {
+					int buy = -prices[ind] + front[0][limit];
+					int notBuy = front[1][limit];
+					profit = max(buy, notBuy);
+				}
+				else {
+					int sell = prices[ind] + front[1][limit-1];
+					int notSell = front[0][limit];
+					profit = max(sell, notSell);
+				}
+				
+				curr[canBuy][limit] = profit;
+			}
+		}
+		front = curr;
+	}
+	
+	return front[1][2];
+}
+
+
+//============== Best Time to Buy and Sell Stock - IV ==============
+// atmost k transactions
+// (ind, transactionNumber approach)
+int maximumProfit(vector<int> &prices, int n, int k) {
+	vector<vector<int>> dp(n+1, vector<int>(2*k + 1, 0));
+
+	for(int ind = n-1; ind >= 0; ind--) {
+		for(int transNum = 2*k-1; transNum >= 0; transNum--) {
+				int profit = 0;
+				
+				if(transNum % 2 == 0) {
+					int buy = -prices[ind] + dp[ind+1][transNum+1];
+					int notBuy = dp[ind+1][transNum];
+					profit = max(buy, notBuy);
+				}
+				else {
+					int sell = prices[ind] + dp[ind+1][transNum+1];
+					int notSell = dp[ind+1][transNum];
+					profit = max(sell, notSell);
+				}
+				
+				dp[ind][transNum] = profit;
+		}
+	}
+	
+	return dp[0][0];   
+}
+
+
+//============== Buy and Sell Stocks With Cooldown ==============
+// 
+int stockProfit(vector<int> &prices){
+	int n = prices.size();
+    vector<vector<int>> dp(n+2, vector<int>(2, 0));
+	
+	for(int ind = n-1; ind >= 0; ind--) {
+		for(int canBuy = 0; canBuy <= 1; canBuy++) {
+			int profit = 0;
+			
+			if(canBuy) {
+				int buy = -prices[ind] + dp[ind+1][0];
+				int notBuy = dp[ind+1][1];
+				profit = max(buy, notBuy);
+			}
+			else {
+				int sell = prices[ind] + dp[ind+2][1];
+				int notSell = dp[ind+1][0];
+				profit = max(sell, notSell);
+			}
+			
+			dp[ind][canBuy] = profit;
+		}
+	}
+	
+	return dp[0][1];
+}
+
+int stockProfit(vector<int> &prices){
+	int n = prices.size();
+    vector<vector<int>> dp(n+2, vector<int>(2, 0));
+	
+	for(int ind = n-1; ind >= 0; ind--) {
+		int profit = 0;
+		
+		int buy = -prices[ind] + dp[ind+1][0];
+		int notBuy = dp[ind+1][1];
+		dp[ind][1] = max(buy, notBuy);
+		
+		int sell = prices[ind] + dp[ind+2][1];
+		int notSell = dp[ind+1][0];
+		dp[ind][0] = max(sell, notSell);
+		
+	}
+	
+	return dp[0][1];
+}
