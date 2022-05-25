@@ -40,12 +40,16 @@ struct val{
 int f(int ind, int prev, int n, struct val p[], vector<vector<int>> &dp) {
     if(ind == n) return 0;
     
+    // prev+1 : right shift index since prev starts with -1
     if(dp[ind][prev+1] != -1) return dp[ind][prev+1];
     
+    // notTake -> move ind, prev remains at place
     int notTake = f(ind+1, prev, n, p, dp);
     
     int take = 0;
+    // if first elem, or condition satisfy we can take
     if(prev == -1 || p[ind].first > p[prev].second)
+        // ind moves to next elem, prev becomes the current elem
         take = 1 + f(ind+1, ind, n, p, dp);
     
     return dp[ind][prev+1] = max(take, notTake);
