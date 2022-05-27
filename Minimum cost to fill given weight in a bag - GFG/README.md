@@ -37,3 +37,10 @@ You don't need to read input or print anything. Complete the function <strong><c
 <span style="font-size:18px">cost[i] ≠ 0</span></p>
  <p></p>
             </div>
+           
+## Problem with unbounded kanpsack method
+14 29
+<br />
+-1 25 78 40 77 66 13 96 76 92 11 67 11 94
+
+The above test case fails when applying the similar base case of unbounded knapsack
