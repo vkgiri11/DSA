@@ -5,6 +5,13 @@ using namespace std;
  // } Driver Code Ends
 class Solution {
 	public:
+	    /* 
+	        arr -> 1 17  5  10  13 15 10 5  16 8
+	        inc -> 1  2' 2  4'  4  4  4  4  6' 6
+	        dec -> 1' 1  3' 3   3  3  3  5' 5  7'
+	        
+	        x' -> part of ans sequence
+	    */
 		int AlternatingaMaxLength(vector<int>&arr){
 		    int inc = 1, dec = 1;
 		    
