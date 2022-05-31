@@ -5,20 +5,23 @@ using namespace std;
  // } Driver Code Ends
 class Solution{
 	public:
-	int f(int N, int X, int Y, vector<int> &dp) {
-	    if(N == 0) return 0;
+	int f(int coins, int X, int Y, vector<int> &dp) {
+	    if(coins == 0) return 0;
 	    
-	    if(N == 1) return 1;
+	    if(coins == 1) return 1;
 	    
-	    if(dp[N] != -1) return dp[N];
+	    if(dp[coins] != -1) return dp[coins];
 	    
-	    if(N-X >= 0 && !f(N-X, X, Y, dp)) return dp[N] = true;
+	    if(coins-X >= 0 && !f(coins-X, X, Y, dp)) 
+	        return dp[coins] = true;
 	    
-	    else if(N-Y >= 0 && !f(N-Y, X, Y, dp)) return dp[N] = true;
+	    else if(coins-Y >= 0 && !f(coins-Y, X, Y, dp)) 
+	        return dp[coins] = true;
 	    
-	    else if(N-1 >= 0 && !f(N-1, X, Y, dp)) return dp[N] = true;
+	    else if(coins-1 >= 0 && !f(coins-1, X, Y, dp)) 
+	        return dp[coins] = true;
 	    
-	    return dp[N] = false;
+	    return dp[coins] = false;
 	}
 	int findWinner(int N, int X, int Y) {
 	    vector<int> dp(N+1, -1);
@@ -28,7 +31,7 @@ class Solution{
 		
 		// 0 coins 
 		dp[0] = 0;
-		// 1coin, geek wins
+		// 1 coin, geek wins
 		dp[1] = 1;
 		
 		for(int i = 2; i <= N; i++) {
