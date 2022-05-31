@@ -5,7 +5,25 @@ using namespace std;
  // } Driver Code Ends
 class Solution{
 	public:
+	int f(int N, int X, int Y, vector<int> &dp) {
+	    if(N == 0) return 0;
+	    
+	    if(N == 1) return 1;
+	    
+	    if(dp[N] != -1) return dp[N];
+	    
+	    if(N-X >= 0 && !f(N-X, X, Y, dp)) return dp[N] = true;
+	    
+	    else if(N-Y >= 0 && !f(N-Y, X, Y, dp)) return dp[N] = true;
+	    
+	    else if(N-1 >= 0 && !f(N-1, X, Y, dp)) return dp[N] = true;
+	    
+	    return dp[N] = false;
+	}
 	int findWinner(int N, int X, int Y) {
+	    vector<int> dp(N+1, -1);
+	    return f(N, X, Y, dp);
+	    /*
 		vector<int> dp(N+1, 0);
 		
 		// 0 coins 
@@ -29,6 +47,7 @@ class Solution{
 		}
 		
 		return dp[N];
+		*/
 	}
 
 };
