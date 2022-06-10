@@ -134,8 +134,11 @@ vector<int> diagonal(Node *root) {
        q.pop();
        
        while(curr) {
+           // for every level queue contains the left nodes
            if(curr->left) q.push(curr->left);
            
+           // keep moving right till null is found
+           // and keep storing the vals
            ans.push_back(curr->data);
            curr = curr->right;
        }
