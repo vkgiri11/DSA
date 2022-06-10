@@ -1,0 +1,925 @@
+=============== Level Order Traversal ===============
+vector<int> getLevelOrder(BinaryTreeNode<int> *root) {
+    vector<vector<int>> ans;
+    
+    if(root == NULL) return ans;
+    
+    queue<BinaryTreeNode<int>*> q;
+    q.push(root);
+    
+    while(!q.empty()) {
+        int size = q.size();
+        vector<int> currLevel;
+        
+        for(int i = 0; i < size; i++) {
+            BinaryTreeNode<int> *node = q.front();
+            q.pop();
+            
+            if(node->left != NULL) q.push(node->left);
+            if(node->right != NULL) q.push(node->right);
+            
+            currLevel.push_back(node->data);
+        }
+        ans.push_back(currLevel);
+    }
+    
+    return ans;
+}
+
+=============== Iterative In-Order Traversal ===============
+void inorder(BinaryTreeNode<int> *root, vector<int> &in){
+    if(root==NULL) return;
+    
+    stack<BinaryTreeNode<int>*> st;
+    BinaryTreeNode<int> *node = root;
+    
+    while(true) {
+        if(node != NULL) {
+            st.push(node);
+            node = node->left;
+        }
+        else {
+            if(st.empty()) break;
+            node = st.top();
+            st.pop();
+            in.push_back(node->data);
+            node = node->right;
+        }
+    }
+    
+    return;
+}
+
+=============== Iterative Pre-Order Traversal ===============
+void preorder(BinaryTreeNode<int> *root, vector<int> &pre){
+    if(root==NULL) return;
+    
+    stack<BinaryTreeNode<int>*> st;
+    st.push(root);
+    
+    while(!st.empty()) {
+        BinaryTreeNode<int> *node = st.top();
+        st.pop();
+        
+        pre.push_back(node->data);
+        
+        if(node->right != NULL) st.push(node->right);
+        if(node->left != NULL) st.push(node->left);
+    }
+        
+    return;
+}
+
+=============== Iterative Post-Order Traversal ===============
+
+// Using 2 Stack
+void postorder2(BinaryTreeNode<int> *root, vector<int> &post){
+    if(root == NULL) return;
+    
+    stack<BinaryTreeNode<int>*> st1, st2;
+    st1.push(root);
+    
+    while(!st1.empty()){
+        root = st1.top();
+        st1.pop();
+        st2.push(root);
+        
+        if(root->left != NULL) st1.push(root->left);
+        if(root->right != NULL) st1.push(root->right);
+    }
+    
+    while(!st2.empty()) {
+        post.push_back(st2.top()->data);
+        st2.pop();
+    }
+        
+    return;
+}
+
+// Using 1 stack
+void postorder1(BinaryTreeNode<int> *root, vector<int> &post){
+    if(root == NULL) return;
+    
+    stack<BinaryTreeNode<int>*> st;
+    
+    BinaryTreeNode<int> *curr = root;
+    
+    while(curr != NULL || !st.empty()) {
+        if(curr != NULL) {
+            st.push(curr);
+            curr = curr->left;  
+        }
+        else {
+            BinaryTreeNode<int> *temp = st.top()->right;
+            if(temp == NULL) {
+                temp = st.top();
+                st.pop();
+                post.push_back(temp->data);
+                while(!st.empty() && temp == st.top()->right) {
+                    temp = st.top();
+                    st.pop();
+                    post.push_back(temp->data);
+                }
+            }
+            else curr = temp;
+        }
+    }
+        
+    return;
+}
+
+=================== All DFS in one Traversal ====================
+vector<vector<int>> getTreeTraversal(BinaryTreeNode<int> *root){
+    stack<pair<BinaryTreeNode<int>*, int>> st;
+    // always start with num = 1 
+    st.push({root, 1});
+    
+    vector<vector<int>> ans;
+    vector<int> pre, in, post;
+    
+    if(root == NULL) return ans;
+    
+    while(!st.empty()) {
+        auto it = st.top();
+        st.pop();
+        
+        if(it.second == 1) {
+            pre.push_back(it.first->data);
+            it.second++;
+            st.push(it);
+                
+            if(it.first->left != NULL) st.push({it.first->left, 1});
+        }
+        
+        else if(it.second == 2) {
+            in.push_back(it.first->data);
+            it.second++;
+            st.push(it);
+                
+            if(it.first->right != NULL) st.push({it.first->right, 1});
+        }
+        
+        else post.push_back(it.first->data);
+    }
+    
+    ans.push_back(in);
+    ans.push_back(pre);
+    ans.push_back(post);
+    
+    return ans;
+}
+
+================ Construct Binary Tree From Inorder and Preorder Traversal ================
+TreeNode<int> *buildTreeHelper(vector<int> &preorder, int preStart, int preEnd,
+vector<int> &inorder, int inStart, int inEnd, map<int, int> &inorderMap) {
+    
+    if(preStart > preEnd || inStart > inEnd) return NULL;
+    
+    // the first elem of preorder is root. Making tree node
+    TreeNode<int>* root = new TreeNode<int>(preorder[preStart]);
+    
+    // finding the index of root in inOrder array
+    int inRoot = inorderMap[root->data];
+    // num of elements present in left subtree
+    int numsElem = inRoot - inStart;
+    
+    root->left = buildTreeHelper(preorder, preStart + 1, preStart + numsElem,
+                                inorder, inStart, inRoot - 1, inorderMap);
+    
+    root->right = buildTreeHelper(preorder, preStart + 1 + numsElem, preEnd,
+                                 inorder, inRoot + 1, inEnd, inorderMap);
+    
+    return root;
+}
+TreeNode<int> *buildBinaryTree(vector<int> &inorder, vector<int> &preorder) {
+    // elements -> index for inorder
+    map<int, int> inorderMap;
+    
+    for(int i = 0; i < inorder.size(); i++) inorderMap[inorder[i]] = i;
+    
+    TreeNode<int> *root = buildTreeHelper(preorder, 0, preorder.size()-1,
+                                          inorder, 0, inorder.size()-1, inorderMap);
+    
+    return root;
+}
+
+================ Construct Binary Tree From Inorder and Postorder Traversal ================
+TreeNode<int> *buildTreeHelper(vector<int> &postorder, int postStart, int postEnd,
+vector<int> &inorder, int inStart, int inEnd, map<int, int> &inorderMap) {
+    
+    if(postStart > postEnd || inStart > inEnd) return NULL;
+    
+    // the last elem of postorder is root. Making tree node
+    TreeNode<int>* root = new TreeNode<int>(postorder[postEnd]);
+    
+    // finding the index of root in inOrder array
+    int inRoot = inorderMap[root->data];
+    // num of elements present in left subtree
+    int numsElem = inRoot - inStart;
+    
+    root->left = buildTreeHelper(postorder, postStart, postStart + numsElem - 1,
+                                inorder, inStart, inRoot - 1, inorderMap);
+    
+    root->right = buildTreeHelper(postorder, postStart + numsElem, postEnd - 1,
+                                 inorder, inRoot + 1, inEnd, inorderMap);
+    
+    return root;
+}
+TreeNode<int>* getTreeFromPostorderAndInorder(vector<int>& postorder, vector<int>& inorder) {
+    if(inorder.size() != postorder.size())
+        return NULL;
+    
+    // elements -> index for inorder
+    map<int, int> inorderMap;
+    
+    for(int i = 0; i < inorder.size(); i++) inorderMap[inorder[i]] = i;
+    
+    TreeNode<int> *root = buildTreeHelper(postorder, 0, postorder.size()-1,
+                                          inorder, 0, inorder.size()-1, inorderMap);
+    
+    return root;
+}
+
+=========================== Check Identical Trees ===========================
+bool identicalTrees(BinaryTreeNode<int>* root1, BinaryTreeNode<int>* root2) {
+    if(root1 == NULL || root2 == NULL) return root1 == root2;
+    
+    return (root1->data == root2->data) &&
+            identicalTrees(root1->left, root2->left) &&
+            identicalTrees(root1->right, root2->right);
+}
+
+================= Maximum Path Sum =================
+int maxPathDown(TreeNode<int>* root, int &maxAns) {
+    if(root == NULL) return 0;
+    
+    // Ignore negative values, return 0 if negative value
+    int leftSum = max(0, maxPathDown(root->left, maxAns));
+    int rightSum = max(0, maxPathDown(root->right, maxAns));
+    
+    maxAns = max(maxAns, root->val + leftSum + rightSum);
+    
+    return root->val + max(leftSum, rightSum);
+}
+int maxPathSum(TreeNode<int>* root) {
+	int maxAns = INT_MIN;
+    maxPathDown(root, maxAns);
+    return maxAns;
+}
+
+============= Diameter Of Binary Tree =============
+int height(TreeNode<int>* root, int &maxDia) {
+        if(root == NULL) return 0;
+        
+        int lh = height(root->left, maxDia);
+        int rh = height(root->right, maxDia);
+        
+        maxDia = max(maxDia, lh+rh);
+        
+        return 1 + max(lh, rh);
+    }
+int diameterOfBinaryTree(TreeNode<int> *root) {
+	int maxDia = 0;
+        height(root, maxDia);
+        return maxDia;
+}
+
+================= Spiral/Zig-Zag Traversal =================
+vector<int> spiralOrder(BinaryTreeNode<int> *root) {
+    vector<vector<int>> ans;
+    if(root == NULL) return NULL;
+    
+    queue<BinaryTreeNode<int> *> q;
+    q.push(root);
+    // flag for direction 
+    bool leftToRight = true;
+    
+    while(!q.empty()) {
+        int size = q.size();
+        vector<int> currLevel(size);
+        
+        for(int i = 0; i < size; i++) {
+            BinaryTreeNode<int> *node = q.front();
+            q.pop();
+            
+            // if true insert from start else fill from end
+            int index = leftToRight ? i : (size-1-i);
+            currLevel[index] = node->data;
+            
+            if(node->left) q.push(node->left);
+            if(node->right) q.push(node->right);
+        }
+        
+        // switch the value after every level
+        leftToRight = !leftToRight;
+        ans.push_back(currLevel);
+    }
+    
+    return ans;
+}
+
+==================== Boundary Traversal ====================
+bool isLeaf(TreeNode<int>* root) {
+    return !root->left && !root->right;
+}
+void addLeftBoundary(TreeNode<int>* root, vector<int> &ans) {
+    TreeNode<int>* curr = root->left;
+    
+    while(curr) {
+        if(!isLeaf(curr)) ans.push_back(curr->data);
+        
+        if(curr->left) curr = curr->left;
+        else curr = curr->right;
+    }
+    return;
+}
+void addRightBoundary(TreeNode<int>* root, vector<int> &ans) {
+    TreeNode<int>* curr = root->right;
+    vector<int> temp;
+    
+    while(curr) {
+        if(!isLeaf(curr)) temp.push_back(curr->data);
+        
+        if(curr->right) curr = curr->right;
+        else curr = curr->left;
+    }
+    
+    // insert in reverse order
+    for(int i = temp.size()-1; i >= 0; i--) 
+        ans.push_back(temp[i]);
+}
+// Preorder Traversal to find leaf nodes
+void addLeaves(TreeNode<int>* root, vector<int> &ans) {
+    if(isLeaf(root)) {
+        ans.push_back(root->data);
+        return;
+    }
+    
+    if(root->left) addLeaves(root->left, ans);
+    if(root->right) addLeaves(root->right, ans);
+}
+vector<int> traverseBoundary(TreeNode<int>* root){
+    vector<int> ans;
+    
+    if(!root) return ans;
+    
+    // insert root if not leaf
+    if(!isLeaf(root)) ans.push_back(root->data);
+    
+    addLeftBoundary(root, ans);
+    addLeaves(root, ans);
+    addRightBoundary(root, ans);
+    
+    return ans;
+}
+
+
+==================== Vertical Order Traversal ====================
+// sorts the value if they are same (vertical, level)
+vector<int> verticalOrderTraversal(TreeNode<int> *root) {
+    // vertical, level, multiplenodes
+    map<int, map<int, multiset<int>>> mp;
+    queue<pair<TreeNode<int> *root, pair<int, int>>> q;
+    
+    // initial nodeValue, vertical, level
+    q.push({root, {0, 0}});
+    
+    while(!q.empty()) {
+        auto p = q.front();
+        q.pop();
+        
+        TreeNode<int> *temp = p.first;
+        
+        // x -> vertical, y -> level
+        int x = p.second.first, y = p.second.second;
+        
+        // inserting value to multiset
+        mp[x][y].insert(temp -> data);
+        
+        if(temp->left) q.push({temp->left, {x-1, y+1}});
+        if(temp->right) q.push({temp->right, {x+1, y+1}});
+    }
+    
+    vector<vector<int>> ans;
+    for(auto it: mp) {
+        vector<int> col;
+        // iterating on (level, multinodes)
+        for(auto q: p.second)
+            // multiset contains a group of nodes at same vertical order
+            // insert the whole set(from begin to end) at the end of col(col.end())
+            col.insert(col.end(), q.second.begin(), q.second.end());
+        
+        ans.push_back(col);
+    }
+    
+    return ans;
+}
+
+============================= Morris Traversal =============================
+void inorder(BinaryTreeNode<int> *root, vector<int> &inorder){
+    if(!root) return;
+    
+    BinaryTreeNode<int> *curr = root;
+    
+    while(curr != NULL) {
+        // left doesnt exists, so we are at root
+        // store the root and move right
+        if(curr->left == NULL) {
+            inorder.push_back(curr->data);
+            curr = curr->right;
+        }
+        // else, the rightmost node in left subtree should point to curr
+        else {
+            // go to left
+            BinaryTreeNode<int> *prev = curr->left;
+            // go to rightmost node if it exists and 
+            // the rightmost node should not point to curr
+            while(prev->right && prev->right != curr) {
+                prev = prev->right;
+            }
+            
+            // after reaching the rightmost node, two cases
+            // its right points to NULL
+            if(prev->right == NULL) {
+                // add thread between rightmost node and curr
+                prev->right = curr;
+                // move curr to left
+                curr = curr->left;
+            }
+            // or it points to curr
+            else {
+                // left subtree is over, we are standing at root
+                // delete the thread
+                prev->right = NULL;
+                // store the root
+                inorder.push_back(curr->data);
+                // move to right now
+                curr = curr->right;
+            }
+        }
+    }
+}
+
+==================== Top View of Binary tree ====================
+vector<int> getTopView(TreeNode<int> *root) {
+    vector<int> ans;
+    if(root == NULL) return ans;
+    
+    // line->node
+    map<int, int> mp;
+    // node, line
+    queue<pair<TreeNode<int> *, int>> q;
+    q.push({root, 0});
+       
+    while(!q.empty()) {
+        auto it = q.front();
+        q.pop();
+        
+        TreeNode<int> *node = it.first;
+        int line = it.second;
+        
+        // if line doesnt exists, insert in map (line->nodeval)
+        if(mp.find(line) == mp.end()) mp[line] = node->val;
+        
+        if(node->left) q.push({node->left, line-1});
+        if(node->right) q.push({node->right, line+1});
+    }
+    
+    for(auto it : mp) ans.push_back(it.second);
+    
+    return ans;
+}
+
+==================== Bottom View of Binary tree ====================
+vector<int> bottomView(BinaryTreeNode<int> * root) {
+    vector<int> ans;
+    if(root == NULL) return ans;
+    
+    // line->node
+    map<int, int> mp;
+    // node, line
+    queue<pair<BinaryTreeNode<int> *, int>> q;
+    q.push({root, 0});
+       
+    while(!q.empty()) {
+        auto it = q.front();
+        q.pop();
+        
+        BinaryTreeNode<int> *node = it.first;
+        int line = it.second;
+        
+        // keep updating the map
+        mp[line] = node->data;
+        
+        if(node->left) q.push({node->left, line-1});
+        if(node->right) q.push({node->right, line+1});
+    }
+    
+    for(auto it : mp) ans.push_back(it.second);
+    
+    return ans;
+}
+
+
+================ Right/Left View of Binary tree ================
+void f(BinaryTreeNode<int> *root, int level, vector<int> &ans) {
+    if(root == NULL) return;
+    
+    // if visiting the level for first time
+    // thats the leftmost node for that level
+    if(ans.size() == level) ans.push_back(root->data);
+    
+    f(root->left, level+1, ans);
+    f(root->right, level+1, ans);
+}
+void printLeftView(BinaryTreeNode<int> *root) {
+    vector<int> ans;
+    f(root, 0, ans);
+    return ans;
+}
+
+================ Check if Symmetric Binary Tree ================
+bool f(BinaryTreeNode<int>* left, BinaryTreeNode<int>* right){
+    if(left == NULL || right == NULL) return left == right;
+    
+    if(left->data != right->data) return false;
+    
+    return f(left->left, right->right) 
+            && 
+            f(left->right, right->left);
+}
+bool isSymmetric(BinaryTreeNode<int>* root) {
+    return root == NULL || f(root->left, root->right);   
+}
+
+====================== Path to Given Node =====================
+bool getPath(TreeNode* root, int x, vector<int> &arr){
+    if(!root) return false;
+
+    arr.push_back(root->val);
+
+    // if any of left/right is true return true(path found)
+    if(getPath(root->left, x, arr) || getPath(root->right, x, arr))
+        return true;
+
+    // Remove the last node
+    arr.pop_back();
+    // no path exists
+    return false;
+}
+vector<int> Solution::solve(TreeNode* A, int B) {
+    vector<int> arr;
+    if(A == null) return arr;
+
+    getPath(A, B, arr);
+    return ans;
+}
+
+============================== LCA in a Binary Tree =============================
+TreeNode<int>* LCAinaBT(TreeNode<int>* root, TreeNode<int>* P, TreeNode<int>* Q) {
+    // if root is null/it matches with p or q -> return null/root 
+    if(root == NULL || root == P || root == Q) return root;
+    
+    TreeNode<int>* left = LCAinaBT(root->left, P, Q);
+    TreeNode<int>* right = LCAinaBST(root->right, P, Q);
+    
+    if(left == NULL) return right;
+    if(right == NULL) return left;
+    // both returns some value, LCA found
+    else return root;
+}
+
+===================== Max Width of a Binary Tree ====================
+    int widthOfBinaryTree(TreeNode* root) {
+        if(!root) return 0;
+    
+        long long maxWidth = 0;
+        // Node, index
+        queue<pair<TreeNode*, long long>> q;
+        q.push({root, 0});
+
+        while(!q.empty()) {
+            int size = q.size();
+            // taking the min index at every level
+            long long minIndex = q.front().second;
+            long long firstIndex, lastIndex;
+
+            for(int i = 0; i < size; i++) {
+                // modifying the index for every node
+                long long currIndex = q.front().second - minIndex;
+
+                TreeNode *node = q.front().first;
+                q.pop();
+
+                if(i == 0) firstIndex = currIndex;
+                if(i == size-1) lastIndex = currIndex;
+
+                if(node->left) q.push({node->left, 2*currIndex + 1});
+                if(node->right) q.push({node->right, 2*currIndex + 2});
+            }
+            maxWidth = max(maxWidth, lastIndex - firstIndex + 1);
+        }
+
+        return (int)maxWidth;
+    }
+
+===================== Children Sum Property ====================
+void changeTree(BinaryTreeNode<int> *root) {
+    if(!root) return;
+    
+    int childSum = 0;
+    if(root->left) childSum += root->left->data;
+    if(root->right) childSum += root->right->data;
+    
+    // change parent if sum of childSum is more 
+    // else change both child to root->data
+    if(childSum >= root->data) root->data = childSum;
+    else {
+        if(root->left) root->left->data = root->data;
+        if(root->right) root->right->data = root->data;
+    }
+    
+    changeTree(root->left);
+    changeTree(root->right);
+    
+    // if child node data change after recursion
+    // assign the new child sum value to node
+    int totSum = 0;
+    if(root->left) totSum += root->left->data;
+    if(root->right) totSum += root->right->data; 
+    
+    // update only when its not a leaf node
+    if(root->left || root->right) root->data = totSum;
+    
+    return;
+} 
+
+==================== Print Nodes at Distance K From a Given Node =====================
+// Function to map a node with its parent
+void trackParent(BinaryTreeNode<int>* root, 
+unordered_map<BinaryTreeNode<int>*, BinaryTreeNode<int>*> &parentTrack) {
+    
+    queue<BinaryTreeNode<int>*> q;
+    q.push(root);
+    
+    while(!q.empty()) {
+        BinaryTreeNode<int>* curr = q.front();
+        q.pop();
+        
+        if(curr->left) {
+            parentTrack[curr->left] = curr;
+            q.push(curr->left);
+        }
+        if(curr->right) {
+            parentTrack[curr->right] = curr;
+            q.push(curr->right);
+        }
+    }
+}
+
+vector<BinaryTreeNode<int>*> printNodesAtDistanceK(BinaryTreeNode<int>* root, 
+BinaryTreeNode<int>* target, int K) {
+   
+    // node->parent
+    unordered_map<BinaryTreeNode<int>*, BinaryTreeNode<int>*> parentTrack;
+    trackParent(root, parentTrack);
+    
+    unordered_map<BinaryTreeNode<int>*, bool> visited;
+    queue<BinaryTreeNode<int>*> q;
+    
+    q.push(target);
+    visited[target] = true;
+    
+    int currDistance = 0;
+    
+    while(!q.empty()) {
+        int size = q.size();
+        
+        if(currDistance == K) break;
+        currDistance++;
+        
+        for(int i = 0; i < size; i++) {
+            BinaryTreeNode<int>* curr = q.front();
+            q.pop();
+            
+            if(curr->left && !visited[curr->left]) {
+                q.push(curr->left);
+                visited[curr->left] = true;
+            }
+            
+            if(curr->right && !visited[curr->right]) {
+                q.push(curr->right);
+                visited[curr->right] = true;
+            }
+            
+            if(parentTrack[curr] && !visited[parentTrack[curr]]) {
+                q.push(parentTrack[curr]);
+                visited[parentTrack[curr]] = true;
+            }
+        }
+    }
+    
+    vector<BinaryTreeNode<int>*> ans;
+    while(!q.empty()) {
+        ans.push_back(q.front());
+        q.pop();
+    }
+    
+    return ans;
+}
+
+==================== Time To Burn Tree ===========================
+// Function to map a node to its parent, and
+// return the address of starting node(target node) 
+BinaryTreeNode<int>* trackParent(BinaryTreeNode<int>* root, 
+map<BinaryTreeNode<int>*, BinaryTreeNode<int>*> &parentTrack,
+int start) {
+    
+    queue<BinaryTreeNode<int>*> q;
+    q.push(root);
+    
+    BinaryTreeNode<int>* target;
+    
+    while(!q.empty()) {
+        BinaryTreeNode<int>* curr = q.front();
+        if(curr->data == start) target = curr;
+        q.pop();
+        
+        if(curr->left) {
+            parentTrack[curr->left] = curr;
+            q.push(curr->left);
+        }
+        if(curr->right) {
+            parentTrack[curr->right] = curr;
+            q.push(curr->right);
+        }
+    }
+    
+    return target;
+}
+int helper(map<BinaryTreeNode<int>*, BinaryTreeNode<int>*> &parentTrack,
+              BinaryTreeNode<int>* target) {
+    
+    map<BinaryTreeNode<int>*, bool> visited;
+    queue<BinaryTreeNode<int>*> q;
+    
+    q.push(target);
+    visited[target] = true;
+    int time = 0;
+    
+    while(!q.empty()) {
+        int size = q.size();
+        bool willBurn = false;
+        
+        for(int i = 0; i < size; i++) {
+            auto curr = q.front();
+            q.pop();
+            
+            if(curr->left && !visited[curr->left]) {
+                willBurn = true;
+                q.push(curr->left);
+                visited[curr->left] = true;
+            }
+            
+            if(curr->right && !visited[curr->right]) {
+                willBurn = true;
+                q.push(curr->right);
+                visited[curr->right] = true;
+            }
+            
+            if(parentTrack[curr] && !visited[parentTrack[curr]]) {
+                willBurn = true;
+                q.push(parentTrack[curr]);
+                visited[parentTrack[curr]] = true;
+            }
+        }
+        // if any of the adjacent nodes burns
+        // only then increase time
+        if(willBurn) time++;
+    }
+    
+    return time;
+}
+int timeToBurnTree(BinaryTreeNode<int>* root, int start) {
+    map<BinaryTreeNode<int>*, BinaryTreeNode<int>*> parentTrack;
+    BinaryTreeNode<int>* target = trackParent(root, parentTrack, start);
+    return helper(parentTrack, target);
+}
+
+================ Count Complete Binary Tree Nodes ================
+int findLH(TreeNode<int> *node) {
+    int height = 0;
+    while(node) {
+        height++;
+        node = node->left;
+    }
+    return height;
+}
+int findRH(TreeNode<int> *node) {
+    int height = 0;
+    while(node) {
+        height++;
+        node = node->right;
+    }
+    return height;
+}
+int countNodes(TreeNode<int> *root) {
+    if(!root) return 0;
+    
+    int lh = findLH(root);
+    int rh = findRH(root);
+    
+    // It is completely filled
+    // num of nodes = 2^h -1
+    if(lh == rh) return (1<<lh) - 1;
+    
+    // recursively calculate the height
+    else return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
+================ Serialize and Deserialize Binary Tree ================
+string serializeTree(TreeNode<int> *root) {
+    if(!root) return "";
+    
+    string ans = "";
+    queue<TreeNode<int>*> q;
+    q.push(root);
+    
+    while(!q.empty()) {
+        TreeNode<int> *curr = q.front();
+        q.pop();
+        
+        if(curr == NULL) ans.append("#,");
+        else ans.append(to_string(curr->data)+',');
+        
+        if(curr != NULL) {
+            q.push(curr->left);
+            q.push(curr->right);
+        }
+    }
+    return ans;
+}
+
+// The getline() function extracts characters from the input stream and 
+// appends it to the string object until the delimiting character is encountered
+
+TreeNode<int>* deserializeTree(string &data) {
+    if(!data.size()) return NULL;
+    
+    stringstream ss(data);
+    string ans;
+    // stringstream, node val in string, delimiter
+    getline(ss, ans, ',');
+    // ans contains the part of string just before ','
+    
+    TreeNode<int>* root = new TreeNode<int>(stoi(ans));
+    queue<TreeNode<int>*> q;
+    q.push(root);
+    
+    while(!q.empty()) {
+        TreeNode<int>* curr = q.front();
+        q.pop();
+        
+        // moves to the next val
+        getline(ss, ans, ',');
+        if(ans == "#") curr->left = NULL;
+        else {
+            TreeNode<int>* leftNode = new TreeNode<int>(stoi(ans));
+            curr->left = leftNode;
+            q.push(leftNode);
+        }
+        
+        // moves to the next val
+        getline(ss, ans, ',');
+        if(ans == "#") curr->right = NULL;
+        else {
+            TreeNode<int>* rightNode = new TreeNode<int>(stoi(ans));
+            curr->right = rightNode;
+            q.push(rightNode);
+        }
+    }
+    
+    return root;
+}
+
+================ Flatten Binary Tree to Linked List ================
+TreeNode<int> *flattenBinaryTree(TreeNode<int> *root) {
+    if(!root) return root;
+    
+    TreeNode<int> *curr = root;
+    
+    while(curr) {
+        if(curr->left) {
+            TreeNode<int> *prev = curr->left;
+            
+            while(prev->right) prev = prev->right;
+            
+            prev->right = curr->right;
+            curr->right = curr->left;
+            curr->left = NULL;
+        }
+        curr = curr->right;
+    }
+    
+    return root;
+}
