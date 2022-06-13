@@ -9,6 +9,7 @@ public:
         for(auto it: spells) {
             int start = 0, end = n;
             
+            // find the index of the smallest elem which satisfies the success
             while(start < end) {
                 int mid = start + (end-start)/2;
                 
