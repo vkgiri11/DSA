@@ -126,11 +126,14 @@ public:
         f(root->left, sum, maxSum, level, maxHeight);
         f(root->right, sum, maxSum, level, maxHeight);
         
+        // When new greater height is found
+        // update both height and sum
         if(level > maxHeight) {
             maxHeight = level;
             maxSum = sum;
         }
         
+        // for same heights take max of both
         else if(level == maxHeight) maxSum = max(maxSum, sum);
     }
     int sumOfLongRootToLeafPath(Node *root) {
