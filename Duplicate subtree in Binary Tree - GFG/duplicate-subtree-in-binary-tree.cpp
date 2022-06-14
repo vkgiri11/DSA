@@ -103,6 +103,7 @@ class Solution {
         s += helper(root->right, mp, str);
         s += ")";
         
+        // a similar subtree already exists with min height 2
         if(mp[s] == 1 && s.length() >= 4) str += root->data;
         
         mp[s]++;
