@@ -98,11 +98,20 @@ class Solution{
         
         if(!root1 || !root2) return false;
         
+        // two conditions for subtrees rooted with n1 and n2 to be isomorphic. 
+        
+        //Data of n1 and n2 is same. 
         if(root1->data != root2->data) return false;
         
+        // One of the following two is true for children of n1 and n2 
+        
+        /*Left child of n1 is isomorphic to left child of n2 and 
+        right child of n1 is isomorphic to right child of n2. */
         int a = isIsomorphic(root1->left, root2->right)
                 && isIsomorphic(root1->right, root2->left);
         
+        /*Left child of n1 is isomorphic to right child of n2 and 
+        right child of n1 is isomorphic to left child of n2.*/
         int b = isIsomorphic(root1->left, root2->left)
                 && isIsomorphic(root1->right, root2->right);
                 
