@@ -92,6 +92,15 @@ The idea is to serialize subtrees as strings and store the strings
 in hash table. Once we find a serialized tree (which is not a leaf) 
 already existing in hash-table, we return true. 
 */
+/*
+Why adding paranthesis ?
+Take tree ->  -2 1 11 11 N 1 N (Level wise)
+left subtree will have -> ((11) 1)
+Right subtree will have -> ((1) 11)
+
+without paranthesis it will be - 111 & 111
+So we cant differentiate
+*/
 class Solution {
   public:
     string helper(Node *root, unordered_map<string, int> &mp, string &str) {
