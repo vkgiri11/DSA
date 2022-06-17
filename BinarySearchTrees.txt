@@ -1,0 +1,426 @@
+===================  Search in a BST ===================
+bool searchInBST(BinaryTreeNode<int> *root, int x) {
+    while(root != NULL && root->data != x) {
+        root = x < root->data ? root->left : root->right;
+    }
+    return root;
+}
+
+===================  Ceil in a BST ===================
+int findCeil(BinaryTreeNode<int> *root, int key){
+    int ceil = -1;
+    
+    while(root) {
+        if(root->data == key) {
+            ceil = root->data;
+            return ceil;
+        }
+        
+        if(key > root->data) root = root->right;
+        else {
+            ceil = root->data;
+            root = root->left;
+        }
+    }
+    
+    return ceil;
+}
+
+===================  Floor in a BST ===================
+int floorInBST(TreeNode<int> * root, int key) {
+    int floor = -1;
+    
+    while(root) {
+        if(root->val == key) {
+            floor = root->val;
+            return floor;
+        }
+        
+        if(key > root->val) {
+            floor = root->val;
+            root = root->right;
+        } 
+        else root = root->left;
+    }
+    
+    return floor;
+}
+
+=====================  Insert Into A BST =====================
+TreeNode<int>* insertionInBST(TreeNode<int>* root, int val) {
+    if(!root) return new TreeNode<int>(val);
+    
+    TreeNode<int>* curr = root;
+    
+    while(true) {
+        if(curr->val <= val) {
+            if(curr->right != NULL) curr = curr->right;
+            else {
+                curr->right = new TreeNode<int>(val);
+                break;
+            }
+        }
+        else {
+            if(curr->left != NULL) curr = curr->left;
+            else {
+                curr->left = new TreeNode<int>(val);
+                break;
+            }
+        }
+    }
+    
+    return root;
+}
+
+=====================================  Delete Node In BST =====================================
+BinaryTreeNode<int>* findLastRight(BinaryTreeNode<int>* temp) {
+    if(temp->right == NULL) return temp;
+    
+    return findLastRight(temp->right);
+}
+BinaryTreeNode<int>* helper(BinaryTreeNode<int>* nodeTBD) {
+    if(nodeTBD->left == NULL) return nodeTBD->right;
+    if(nodeTBD->right == NULL) return nodeTBD->left;
+    
+    // right subtree head of node to be deleted
+    BinaryTreeNode<int>* rightHead = nodeTBD->right;
+    // finds the last right elem(greatest elem) in the (left subtree of nodeTBD)
+    BinaryTreeNode<int>* lastRight = findLastRight(nodeTBD->left);
+    // (attach the right subtree of nodeTBD) to the last right elem of (left subtree of nodeTBD)
+    lastRight->right = rightHead;
+    // return the new left node which is the left of nodeTBD
+    return nodeTBD->left;
+}
+BinaryTreeNode<int>* deleteNode(BinaryTreeNode<int>* root, int key) {
+    if(root == NULL) return NULL;
+    
+    // makes the left of root as the new root
+    if(root->data == key) return helper(root);
+    
+    BinaryTreeNode<int>* dummyRoot = root;
+    while(root != NULL) {
+        if(root->data > key) {
+            if(root->left != NULL && root->left->data == key) {
+                root->left = helper(root->left);
+                break;
+            }
+            else root = root->left;
+        }
+        else {
+            if(root->right != NULL && root->right->data == key) {
+                root->right = helper(root->right);
+                break;
+            }
+            else root = root->right;
+        }
+    }
+    
+    return dummyRoot;
+}
+
+===================  Find K-th smallest Element in BST ===================
+int morrisInorder(BinaryTreeNode<int> *root, int k){
+    // if(!root) return;
+    
+    BinaryTreeNode<int> *curr = root;
+    int count = 0;
+    // stores the kth smallest node
+    int ksmall = -1;
+    
+    while(curr != NULL) {
+        // left doesnt exists, so we are at root
+        // store the root and move right
+        if(curr->left == NULL) {
+            // inorder.push_back(curr->data);
+            
+            count++;
+            if(count == k) ksmall = curr->data;
+            
+            curr = curr->right;
+        }
+        // else, the rightmost node in left subtree should point to curr
+        else {
+            // go to left
+            BinaryTreeNode<int> *prev = curr->left;
+            // go to rightmost node if it exists and 
+            // the rightmost node should not point to curr
+            while(prev->right && prev->right != curr) {
+                prev = prev->right;
+            }
+            
+            // after reaching the rightmost node, two cases
+            // its right points to NULL
+            if(prev->right == NULL) {
+                // add thread between rightmost node and curr
+                prev->right = curr;
+                // move curr to left
+                curr = curr->left;
+            }
+            // or it points to curr
+            else {
+                // left subtree is over, we are standing at root
+                // delete the thread
+                prev->right = NULL;
+                
+                // store the root
+                // inorder.push_back(curr->data);
+                
+                count++;
+                if(count == k) ksmall = curr->data;
+                
+                // move to right now
+                curr = curr->right;
+            }
+        }
+    }
+    
+    return ksmall;
+}
+int kthSmallest(BinaryTreeNode<int>* root, int k) {
+    return morrisInorder(root, k);
+}
+
+======================  Check if a tree is BST ======================
+bool validate(BinaryTreeNode<int> *root, int minVal, int maxVal) {
+    if(!root) return true;
+    
+    if(root->data < minVal || root->data > maxVal) return false;
+    
+    return validate(root->left, minVal, root->data) 
+            && validate(root->right, root->data, maxVal);
+}
+bool isBST(BinaryTreeNode<int> *root) {
+    return validate(root, -1e9, 1e9);
+}
+
+==============================  LCA of Two Nodes In A BST ==============================
+TreeNode<int>* LCAinaBST(TreeNode<int>* root, TreeNode<int>* P, TreeNode<int>* Q) {
+    while(root != NULL) {
+        int curr = root->data;
+        if(curr < P->data && curr < Q->data) root = root->right;
+        else if(curr > P->data && curr > Q->data) root = root->left;
+        
+	//this node is LCA of p and q
+        else break;
+    }
+    
+    return root;
+}
+
+===================  Construct BST from Preorder Traversal ===================
+TreeNode<int>* f(vector<int> &pre, int &ind, int upperBound) {
+    // if the val is greater than upperBound node cant be inserted at the position
+    if(ind == pre.size() || pre[ind] > upperBound) return NULL;
+    
+    // make a node
+    TreeNode<int>* root = new TreeNode<int>(pre[ind++]);
+    // for left, upper bound = root val
+    root->left = f(pre, ind, root->data);
+    // for right, upper bound is same as the root node
+    root->right = f(pre, ind, upperBound);
+    
+    return root;
+}
+TreeNode<int>* preOrderTree(vector<int> &preOrder) {
+    int ind = 0;
+    return f(preOrder, ind, 1e9);
+}
+
+===================  Predecessor and Successor In BST ===================
+vector<int> findPreSuc(binaryTreeNode *root, int key) {
+	int successor = -1;
+    int predecessor = -1;
+    vector<int> ans;
+    
+    binaryTreeNode *curr = root;
+ 
+    while(curr != NULL) {
+        if(curr->data >= key) curr = curr->left;
+        else {
+            // can be predecessor
+            predecessor = curr->data;
+            // to find larget predecessor possible move right
+            curr = curr->right;
+        }
+    }
+    ans.push_back(predecessor);
+    
+    curr = root;
+    while(curr != NULL) {
+        if(curr->data <= key) curr = curr->right;
+        else {
+            // can be successor
+            successor = curr->data;
+            // to find smallest successor possible move left
+            curr = curr->left;
+        }
+    }
+    ans.push_back(successor);
+    
+    return ans;
+}
+
+===================  BST Iterator ===================
+class BSTiterator {
+    private: 
+    stack<TreeNode<int>*> st;
+    void pushAllLeft(TreeNode<int> *node) {
+        while(node != NULL) {
+            st.push(node);
+            node = node->left;
+        }
+    }
+        
+    public:
+    BSTiterator(TreeNode<int> *root) {
+        pushAllLeft(root);
+    }
+
+    int next() {
+        TreeNode<int> *topNode = st.top();
+        st.pop();
+        pushAllLeft(topNode->right);
+        return topNode->data;
+    }
+
+    bool hasNext() {
+        return !st.empty();
+    }
+};
+
+===================  Two Sum In BST ===================
+class BSTiterator {
+    private: 
+    stack<BinaryTreeNode<int>*> st;
+    // reverse -> true -> before ptr
+    // reverse -> false -> next ptr
+    bool reverse;
+    void pushAllLeft(BinaryTreeNode<int> *node) {
+        while(node != NULL) {
+            st.push(node);
+            if(reverse) node = node->right;
+            else node = node->left;
+        }
+    }
+        
+    public:
+    BSTiterator(BinaryTreeNode<int> *root, bool isReverse) {
+        reverse = isReverse;
+        pushAllLeft(root);
+    }
+
+    int next() {
+        BinaryTreeNode<int> *topNode = st.top();
+        st.pop();
+        if(reverse) pushAllLeft(topNode->left);
+        else pushAllLeft(topNode->right);
+        return topNode->data;
+    }
+
+    bool hasNext() {
+        return !st.empty();
+    }
+};
+
+bool twoSumInBST(BinaryTreeNode<int>* root, int target) {
+    if(!root) return false;
+    
+    BSTiterator left(root, false);
+    BSTiterator right(root, true);
+    
+    int i = left.next();
+    int j = right.next(); // right.before()
+    
+    while(i < j) {
+        if(i + j == target) return true;
+        else if(i + j < target) i = left.next();
+        else j = right.next();
+    }
+    
+    return false;
+}
+
+=====================================  Fix BST =====================================
+void inorder(BinaryTreeNode<int>* root, BinaryTreeNode<int>* &first,
+BinaryTreeNode<int>* &middle, BinaryTreeNode<int>* &prev, BinaryTreeNode<int>* &last) {
+    
+    if(!root) return;
+    
+    inorder(root->left, first, middle, prev, last);
+    
+    // condition for violation
+    if(prev != NULL && (prev->data > root->data)) {
+        
+        // If this is first violation, mark these two nodes as
+        // 'first' and 'middle'
+        if(first == NULL) {
+            first = prev;
+            middle = root;
+        }
+        
+        // If this is second violation, mark this node as last
+        else last = root;
+    }
+    
+    // this node work is done, so mark it as previous 
+    prev = root;
+    
+    inorder(root->right, first, middle, prev, last);
+}
+BinaryTreeNode<int>* FixBST(BinaryTreeNode<int>* root){
+	BinaryTreeNode<int> *first, *middle, *prev, *last;
+    
+    first = middle = last = NULL;
+    
+    // the first prev for a correct BST will have smallest value
+    prev = new BinaryTreeNode<int>(-1e9);
+    
+    inorder(root, first, middle, prev, last);
+    
+    // violating nodes are not adjacent
+    if(first && last) swap(first->data, last->data); 
+    // violating nodes are adjacent
+    else if(first && middle) swap(first->data, middle->data); 
+    
+    return root;
+}
+
+==========================  Largest BST in Binary Tree ==========================
+class NodeVal{
+    public:
+    int maxNode, minNode, maxSize;
+    
+    NodeVal(int minNode, int maxNode, int maxSize) {
+        this->maxNode = maxNode;
+        this->minNode = minNode;
+        this->maxSize = maxSize;
+    }
+};
+class Solution{
+    private:
+    NodeVal largestBstHelper(Node *root) {
+        // an empty tree is a BST of size 0
+        if(!root) return NodeVal(INT_MAX, INT_MIN, 0);
+        
+        // Postorder traversal to get left, right values
+        auto left = largestBstHelper(root->left);
+        auto right = largestBstHelper(root->right);
+        
+        // Current node is greater than max in left AND smaller than min in right, 
+        // it is a BST.
+        if(left.maxNode < root->data && root->data < right.minNode) {
+            // min(left.minNode, root->data) -> comparing min for edge cases 
+            // when left or right is NULL
+            return NodeVal(min(left.minNode, root->data), max(right.maxNode, root->data), 
+                            left.maxSize + right.maxSize + 1);
+        }
+        
+        // Otherwise, return [-inf, inf] so that parent can't be valid BST
+        return NodeVal(INT_MIN, INT_MAX, max(left.maxSize, right.maxSize));
+        
+    }
+    public:
+    int largestBst(Node *root) {
+    	return largestBstHelper(root).maxSize;
+    }
+};
