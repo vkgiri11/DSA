@@ -99,8 +99,12 @@ struct Node {
 int data;
 Node * right, * left;
 };*/
-
-/*You are required to complete below method */
+/* root node can be in the range [1, ∞]  
+left sub-tree can have the value in the range [1, val-1] and 
+right sub-tree the value in range [val+1, ∞]. 
+traverse recursively and when min and max value of range coincided 
+it means that we cannot add any node further in the tree. 
+Hence we encounter a dead end.*/
 bool f(Node *root, int min, int max) {
     // if the root is null or the recursion moves
     // after leaf node it will return false
