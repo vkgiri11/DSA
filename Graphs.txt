@@ -1,0 +1,501 @@
+========================= BFS =========================
+vector<int> BFS(int v, vector<pair<int, int>> edges) {
+    vector<int> bfs;
+    vector<int> visited(v, 0);
+    
+    vector<int> adj[v];
+    for(int i = 0; i < edges.size(); i++) {
+        int u = edges[i].first;
+        int v = edges[i].second;
+        
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    for(int i = 0; i < v; i++) {
+        if(!visited[i]) {
+            queue<int> q;
+            q.push(i);
+            visited[i] = 1;
+            
+            while(!q.empty()) {
+                int node = q.front();
+                q.pop();
+                bfs.push_back(node);
+                
+                for(auto it: adj[node]) {
+                    if(!visited[i]) {
+                        q.push(it);
+                        visited[i] = 1;
+                    }
+                }
+            }
+        }
+    }
+    
+    return bfs;
+}
+
+====================================== DFS ======================================
+void dfs(int node, vector<int> &vis, vector<int> adj[], vector<int> &storeDfs) {
+    storeDfs.push_back(node); 
+    vis[node] = 1; 
+    for(auto it : adj[node]) {
+        if(!vis[it]) {
+            dfs(it, vis, adj, storeDfs); 
+        }
+    }
+}
+vector<int> dfsOfGraph(int V, vector<int> adj[]){
+    vector<int> storeDfs; 
+    vector<int> vis(V+1, 0); 
+
+    for(int i = 1;i<=V;i++) {
+        if(!vis[i]) dfs(i, vis, adj, storeDfs); 
+    }
+
+    return storeDfs; 
+}
+
+
+======================== Detect Cycle in an Undirected Graph(DFS) ========================
+#include <bits/stdc++.h>
+using namespace std;
+bool checkForCycle(int node, int parent, vector<int> &visited, vector<int> adj[]) {
+    visited[node] = 1;
+    
+    for(auto it: adj[node]) {
+        if(visited[it] == 0) {
+            // if adj node not visited, make next recursive call
+            // if any further call returns true, return true no need for further calls
+            if(checkForCycle(it, node, visited, adj)) return true;
+        }
+        // adjacent node already visited, but it is not the parent. Hnece cyclic
+        else if(it != parent) return true;
+    }
+    
+    return false;
+}
+string isCyclic(int V, vector<int> adj[]) {
+    vector<int> visited(V, 0);
+    for(int i = 0; i < V; i++) {
+        if(!visited[i]) {
+            if(checkForCycle(i, -1, visited, adj)) return "True";
+        }
+    }
+    
+    return "False";
+}
+int main() {
+    int v, edges;
+    cin >> v >> edges;
+    vector<int> adj[v];
+    
+    for(int i = 0; i < edges; i++) {
+        int u, v;
+        cin >> u >> v;
+        
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    cout << isCyclic(v, adj);
+	return 0;
+}
+
+======================== Detect Cycle in an Undirected Graph(BFS) ========================
+bool checkForCycle(int node, vector<int> &visited, vector<int> adj[]) {
+    // node, parent
+    queue<pair<int, int>> q;
+    visited[node] = true;
+    q.push({node, -1});
+    
+    while(!q.empty()) {
+        
+        int curr = q.front().first;
+        int parent = q.front().second;
+        q.pop();
+        
+        for(auto it: adj[curr]) {
+            if(!visited[it]) {
+                visited[it] = true;
+                q.push({it, node});
+            }
+            // visited[it], but is not parent. Hence cyclic
+            else if(parent != it) return true;
+        }
+    }
+    
+    return false;
+}
+string isCyclic(int V, vector<int> adj[]) {
+    vector<int> visited(V, 0);
+    for(int i = 0; i < V; i++) {
+        if(!visited[i]) {
+            if(checkForCycle(i, visited, adj)) return "True";
+        }
+    }
+    
+    return "False";
+}
+
+======================== Check Bipartite Graph ========================
+bool bipartiteBFS(int curr, vector<int> adj[], vector<int> &colors) {
+    queue<int>q;
+    q.push(curr);
+    // initial color: 1
+    colors[curr] = 1;
+    
+    while(!q.empty()) {
+        int node = q.front();
+        q.pop();
+        
+        for(auto it: adj[node]) {
+            // adj node not colored
+            if(colors[it] == -1) {
+                q.push(it);
+                // color alloted opposite of current
+                colors[it] = 1 - colors[node];
+            }
+            else if(colors[it] == colors[node]) return false;
+        }
+    }
+    
+    return true;
+}
+bool bipartiteDFS(int curr, vector<int> adj[], vector<int> &colors) {
+    // assign initial color as 1
+    if(colors[curr] == -1) colors[curr] = 1;
+    
+    for(auto it : adj[curr]) {
+        if(colors[it] == -1) {
+            colors[it] = 1 - colors[curr];
+            if(!bipartiteDFS(it, adj, colors)) return false;
+        }
+        else if(colors[it] == colors[curr]) return false;
+    }
+    
+    return true;
+}
+bool checkBipartite(int v, vector<int> adj[]) {
+    vector<int> colors(v, -1);
+    for(int i = 0; i < v; i++) {
+        if(colors[i] == -1) {
+            if(!bipartiteDFS(i, adj, colors)) return false;
+        }
+    }
+    
+    return true;
+}
+
+====================== Detect Cycle In A Directed Graph (DFS) ======================
+int checkCycle(int node, vector<int> adj[], vector<int> &vis, vector<int> &dfsVis) {
+    vis[node] = 1;
+    dfsVis[node] = 1;
+    
+    for(auto it: adj[node]) {
+        if(!vis[it]) {
+            if(checkCycle(it, adj, vis, dfsVis)) return true;
+        }
+        // if adj node is visited, and is also visited on current path. Cycle exists
+        else if(dfsVis[it]) return true;
+    }
+    
+    // while going back unmark the node, to remove from curr path
+    dfsVis[node] = 0;
+    return false;
+}
+int detectCycle(int n, vector<int> adj[]) {
+    vector<int> vis(n+1, 0);
+    vector<int> dfsVis(n+1, 0);
+    
+    for(int i = 1; i <= n; i++) {
+        if(!vis[i]) {
+            if(checkCycle(i, adj, vis, dfsVis)) return true;
+        }
+    }
+    
+    return false;
+}
+
+====================== Topological Sort(DFS) ======================
+void topoSortDFS(int node, vector<int> adj[], vector<int> &vis, 
+		stack<int> &st) {
+    vis[node] = 1;
+    
+    for(auto it : adj[node]) {
+        if(!vis[it]) topoSortDFS(it, adj, vis, st);
+    }
+    
+    st.push(node);
+}
+vector<int> topoSort(int n, vector<int> adj[]) {
+    vector<int> vis(n, 0);
+    stack<int> st;
+    vector<int> ans;
+    
+    for(int i = 0; i < n; i++) {
+        if(!vis[i]) topoSortDFS(i, adj, vis, st);
+    }
+    
+    while(!st.empty()) {
+        ans.push_back(st.top());
+        st.pop();
+    }
+    
+    return ans;
+}
+
+================== Topological Sort(BFS) ==================
+vector<int> topoSort(int n, vector<int> adj[]) {
+    vector<int> ans;
+    vector<int> indegree(n, 0);
+    queue<int> q;
+
+    // calculating indegree
+    for(int i = 0; i < n; i++) {
+        for(auto it : adj[i])
+            indegree[it]++;
+    }
+    
+    // push all nodes with indegree 0
+    for(int i = 0; i < n; i++) {
+        if(indegree[i] == 0) q.push(i);
+    }
+    
+    while(!q.empty()) {
+        int curr = q.front();
+        q.pop();
+        ans.push_back(curr);
+        for(auto it: adj[curr]) {
+            // reduce indegree of all adj nodes
+            indegree[it]--;
+            // if any adj nodes indegree becomes 0, 
+            // push in queue
+            if(indegree[it] == 0) q.push(it);
+        } 
+    }
+    
+    return ans;
+}
+
+================== Shortest Path in Undirected Graph with Unit Weights ==================
+vector<int> shortestDistance(int src, int N, vector<int> T) {
+    vector<int> dist(N, 1e9);
+    queue<int> q;
+    
+    // distance till src will be 0
+    dist[src] = 0;
+    q.push(src);
+    
+    while(!q.empty()) {
+        int curr = q.front();
+        q.pop();
+        
+        for(auto it : adj[curr]) {
+            if(dist[it] > 1 + dist[curr]) {
+                dist[it] = 1 + dist[curr];
+                q.push(it);
+            }
+        }
+    }
+    
+    // contains shortest distance till every node from src
+    return dist;
+}
+
+============================ Shortest Path in weighted DAG ============================
+void findTopoSort(int node, int vis[], stack<int> &st, vector<pair<int,int>> adj[]) {
+    vis[node] = 1; 
+    for(auto it : adj[node]) {
+        if(!vis[it.first]) {
+            findTopoSort(it.first, vis, st, adj); 
+        }
+    }
+    st.push(node);
+}
+
+
+void shortestPath(int src, int N, vector<pair<int,int>> adj[]) 
+{ 
+    int vis[N] = {0};
+    stack<int> st; 
+    for (int i = 0; i < N; i++) 
+        if (!vis[i]) 
+            findTopoSort(i, vis, st, adj); 
+			
+	int dist[N]; 
+	for (int i = 0; i < N; i++) 
+		dist[i] = 1e9; 
+	dist[src] = 0; 
+
+	while(!st.empty()) 
+	{  
+            int node = st.top(); 
+            st.pop(); 
+            
+            // only allow if the node is visited atleast once 
+            if (dist[node] != INF) {
+                for(auto it : adj[node]) {
+                    if(dist[node] + it.second < dist[it.first]) {
+                        dist[it.first] = dist[node] + it.second; 
+                    }
+                }
+            }
+	} 
+
+	for (int i = 0; i < N; i++) 
+            (dist[i] == 1e9)? cout << "INF ": cout << dist[i] << " "; 
+} 
+
+=================== Dijkstra's Algorithm | Shortest Path in Undirected Graphs ===================
+// adj list ->(node, distance)
+vector<int> dijkstra(int src, int n, vector<pair<int, int>> adj[]){
+    
+    // Min-heap priority queue (distance, node)
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+    // stores shortest path to every node
+    vector<int> distTo(n, 1e9);
+    
+    distTo[src] = 0;
+    pq.push({0, source});
+    
+    while(!pq.empty()) {
+        int distTillCurrNode = pq.top().first;
+        int currNode = pq.top().second;
+        pq.pop();
+        
+        for(auto it : adj[node]) {
+            int nextNode = it.first;
+            int distToNextNode = it.second;
+            if(distTo[nextNode] > distTillCurrNode + distToNextNode) {
+                distTo[nextNode] = distTillCurrNode + distToNextNode;
+                pq.push({distTo[nextNode], nextNode});
+            }
+        }
+    }
+    
+    return dist;
+}
+
+================================= Prims Algorithm =================================
+int spanningTree(int N, vector<vector<int>> adj[]) {
+        vector<int> key(N+1, 1e9);
+        vector<bool> mst(N+1, false);
+        vector<int> parent(N+1, -1);
+        
+        key[0] = 0;
+        parent[0] = -1;
+        
+        // Since graph has N nodes, MST will have N-1 edges
+        for(int count = 0; count < N-1, count++) {
+            int mini = INT_MAX;
+            int curr;
+            
+            // finding the minm value in key whose mst is false
+            for(int ind = 0; ind < N; ind++)
+                if(mst[ind] == false && key[ind] < mini)
+                    mini = key[ind], curr = ind;
+            
+            mst[curr] = true;
+            
+            for(auto it: adj[curr]) {
+                int adjNode = it.first;
+                int weight = it.second;
+                if(mst[adjNode] == false && weight < key[adjNode])
+                    parent[adjNode] = curr, key[adjNode] = weight;
+            }
+        }
+        
+        // parent stores the parent of every index
+        // key stores all the edge weight of MST
+        
+    }
+
+// Efficient approach
+int spanningTree(int N, vector<vector<int>> adj[]) {
+        vector<int> key(N+1, 1e9);
+        vector<bool> mst(N+1, false);
+        vector<int> parent(N+1, -1);
+        
+        priority_queue< pair<int,int>, vector <pair<int,int>> , greater<pair<int,int>> > pq;
+        
+        key[0] = 0;
+        parent[0] = -1;
+        // weight of edge/key[index], index
+        pq.push({0,0});
+        
+        while(!pq.empty()) {
+
+            // returns the minm value in key array 
+            int curr = pq.top().second; // nlogn
+            pq.pop();
+            
+            mst[curr] = true;
+            
+            for(auto it: adj[curr]) {
+                int adjNode = it[0];
+                int weight = it[1];
+                if(mst[adjNode] == false && weight < key[adjNode]) {
+                    parent[adjNode] = curr;
+                    key[adjNode] = weight;
+                    pq.push({key[adjNode], adjNode});
+                }
+            }
+        }
+        
+        // parent stores the parent of every index
+        // key stores all the edge weight of MST
+        
+        int sum = 0;
+        for(int i = 1; i <= N; i++)
+            if(key[i] != 1e9) sum += key[i];
+            
+        return sum;
+    }
+
+================================= Bridges in a Graph =================================
+#include <bits/stdc++.h>
+using namespace std;
+void dfs(int node, int parent, vector<int> &vis, vector<int> &tin, 
+vector<int> &low, int &timer, vector<int> adj[]) {
+
+    vis[node] = 1; 
+    tin[node] = low[node] = timer++; 
+    for(auto it: adj[node]) {
+        if(it == parent) continue;
+        
+        if(!vis[it]) {
+            dfs(it, node, vis, tin, low, timer, adj); 
+            low[node] = min(low[node], low[it]); 
+            if(low[it] > tin[node]) {
+                cout << node << " " << it << endl;
+            }
+        } else {
+            low[node] = min(low[node], tin[it]); 
+        }
+    }
+}
+int main() {
+    int n, m;
+    cin >> n >> m; 
+	vector<int> adj[n]; 
+	for(int i = 0;i<m;i++) {
+	    int u, v;
+	    cin >> u >> v; 
+	    adj[u].push_back(v);
+	    adj[v].push_back(u); 
+	}
+	
+	vector<int> tin(n, -1);
+	vector<int> low(n, -1); 
+	vector<int> vis(n, 0); 
+	int timer = 0; 
+	for(int i = 0;i<n;i++) {
+	    if(!vis[i]) {
+	        dfs(i, -1, vis, tin, low, timer, adj); 
+	    }
+	}
+	
+	return 0;
+}
