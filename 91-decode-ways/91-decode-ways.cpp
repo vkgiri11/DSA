@@ -18,8 +18,22 @@ public:
         return dp[ind] = ways;
     }
     int numDecodings(string s) {
-        vector<int> dp(s.size(), -1);
+        int n = s.size();
         
-        return s.size() == 0 ? 0 : f(0, s, dp);
+        vector<int> dp(n+1, 0);
+        dp[n] = 1;
+        
+        for(int ind = n-1; ind >= 0; ind--) {
+            if(s[ind] == '0') dp[ind] = 0;
+            
+            else {
+                dp[ind] = dp[ind+1];
+                
+                if(ind < n-1 && (s[ind] == '1' || (s[ind] == '2' && s[ind+1] < '7')))
+                    dp[ind] += dp[ind+2];
+            }
+        }
+        
+        return s.size() == 0 ? 0 : dp[0];
     }
 };
