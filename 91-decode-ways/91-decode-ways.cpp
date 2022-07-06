@@ -4,7 +4,7 @@ public:
         if(ind == s.size()) return 1;
         
         //0 cant be mapped to any number
-        if(s[ind] == '0') return dp[ind] = 0;
+        if(s[ind] == '0') return 0;
         
         if(dp[ind] != -1) return dp[ind];
         
