@@ -23,7 +23,21 @@ public:
         return dp[start] = false;
     }
     bool wordBreak(string s, vector<string>& wordDict) {
-        vector<int> dp(s.size(), -1);
-        return f(0, s, wordDict, dp);
+        int n = s.size();
+        vector<int> dp(n+1);
+        
+        dp[n] = 1;
+    
+        for(int start = n-1; start >= 0; start--) {
+            string temp;
+            for(int i = start; i < n; i++) {
+                if(contains(temp+=s[i], wordDict) && dp[i+1]) {
+                    dp[start] = true;
+                    break;
+                }
+            }
+        }
+        
+        return dp[0];
     }
 };
