@@ -40,6 +40,7 @@ public:
             for(int j = 0; j < col; j++) 
                 ans = max(ans, dp[i][j]);
         
+        // area
         return ans*ans;
     }
 };
