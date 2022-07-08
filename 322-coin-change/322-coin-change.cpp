@@ -19,12 +19,30 @@ public:
         return dp[ind][target] = min(pick, notPick);
         
     }
-    int coinChange(vector<int>& coins, int amount) {
+    int coinChange(vector<int>& coins, int target) {
         int n = coins.size();
-        vector<vector<int>> dp(n, vector<int>(amount+1, -1));
-        int ans = f(n-1, amount, coins, dp);
+        vector<vector<int>> dp(n, vector<int>(target+1, 0));
+        
+        for(int T = 0; T <= target; T++) {
+            if(T % coins[0] == 0) dp[0][T] = T/coins[0];
+            else dp[0][T] = 1e9;
+        }
+        
+        for(int ind = 1; ind < n; ind++) {
+            for(int T = 0; T <= target; T++) {
+                int notPick = dp[ind-1][T];
+        
+                int pick = 1e9;
+                if(coins[ind] <= T)
+                    pick = 1 + dp[ind][T-coins[ind]];
+
+                dp[ind][T] = min(pick, notPick);
+            }
+        }
+        
+        int ans = dp[n-1][target];
         
         if(ans == 1e9) return -1;
-        return ans;
+        else return ans;
     }
 };
