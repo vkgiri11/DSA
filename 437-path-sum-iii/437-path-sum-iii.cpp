@@ -11,6 +11,7 @@
  */
 class Solution {
 public:
+    // Check if the sum exists on a path starting from a given root
     void f(TreeNode* root, long long int targetSum, int &ways) {
         if(!root) return;
         
@@ -19,6 +20,7 @@ public:
         f(root->left, targetSum - root->val, ways);
         f(root->right, targetSum - root->val, ways);
     }
+    // Iterate over all nodes of the tree
     void pathSumHelper(TreeNode* root, int targetSum, int &ways) {
         if(root) {
             f(root, targetSum, ways);
