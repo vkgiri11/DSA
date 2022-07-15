@@ -18,6 +18,40 @@ public:
 
 class Solution {
 public:
+    // O(1) : space, O(n) : time(visiting all nodes once)
+    Node* connect(Node* root) {
+        Node *levelStart = root;
+        
+        while(levelStart != NULL) {
+            Node *curr = levelStart;
+            
+            while(curr != NULL) {
+                // if curr left exists, right will also exists
+                // since this is perfect binary tree
+                if(curr->left) {
+                    // the left child next will point to right child
+                    curr->left->next = curr->right;
+                    
+                    // the curr has some next, 
+                    // the left child of curr will point to left child of curr->next
+                    if(curr->next) curr->right->next = curr->next->left;
+                }
+                
+                // move to the next node in same level
+                curr = curr->next;
+            }
+            
+            // move to next Level
+            levelStart = levelStart->left;
+        }
+        
+        return root;
+        
+    }
+};
+
+/*
+    // O(n) : both space and time
     Node* connect(Node* root) {
         if(!root) return NULL;
         
@@ -44,4 +78,4 @@ public:
         
         return root;
     }
-};
+*/
