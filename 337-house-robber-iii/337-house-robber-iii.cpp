@@ -11,31 +11,29 @@
  */
 class Solution {
 public:
-    int f(TreeNode* root, unordered_map<TreeNode*, int> &map) {
-        if(root == NULL) return 0;
+    int f(TreeNode* root, unordered_map<TreeNode*, int> &dp) {
+        if(!root) return 0;
         
-        if(map.find(root) != map.end()) return map[root];
-        
-        int ans = 0;
-        
-        if(root->left != NULL)
-            ans += f(root->left->left, map) + f(root->left->right, map);
-        
-        if(root->right != NULL)
-            ans += f(root->right->left, map) + f(root->right->right, map);
+        if(dp.count(root)) return dp[root];
         
         // there are two cases, one to rob the root or not
-        
         // f(root->left) + f (root->right) : case if root is not robbed
-        // root->val + ans : if root is robbed, ans stores the value 
-        // from left and right grandchild of root. Add this to root->val
-        ans = max(root->val + ans, f(root->left, map) + f (root->right, map));
+        int dontRobRoot = f(root->left, dp) + f(root->right, dp);
         
-        return map[root] = ans;
+        // if root is robbed then we can rob only the grandchilds of root
+        int robRoot = root->val;
+        
+        if(root->left != NULL)
+            robRoot += f(root->left->left, dp) + f(root->left->right, dp);
+        
+        if(root->right != NULL)
+            robRoot += f(root->right->left, dp) + f(root->right->right, dp);
+        
+        return dp[root] = max(robRoot, dontRobRoot);
     }
     int rob(TreeNode* root) {
         // node, max value robbed at this node
-        unordered_map<TreeNode*, int> map;
-        return f(root, map);
+        unordered_map<TreeNode*, int> dp;
+        return f(root, dp);
     }
 };
